@@ -12,6 +12,8 @@ var bodyParser   = require('body-parser');
 var session      = require('express-session');
 
 // configuration
+app.use(express.static(__dirname + '/static'));
+
 var configDB = require('./config/database.js');
 mongoose.connect(configDB.url);
 
@@ -29,6 +31,7 @@ app.set('view engine', 'ejs'); // set up ejs for templating
 // required for passport
 app.use(session({ secret: 'node-digix-project' })); // session secret
 app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 
