@@ -14,6 +14,9 @@ var session      = require('express-session');
 // configuration
 app.use(express.static(__dirname + '/static'));
 
+var favicon = require('serve-favicon');
+app.use(favicon('static/images/digix.ico'));
+
 var configDB = require('./config/database.js');
 mongoose.connect(configDB.url);
 
