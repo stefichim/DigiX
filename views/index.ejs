@@ -1,26 +1,102 @@
-<!-- views/index.ejs -->
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-  <title>Node Authentication</title>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
-  <style>
-    body        { padding-top:80px; }
-  </style>
+    <meta charset="utf-8">
+    <title>DigiX</title>
+    <meta name="description" content="First page">
+
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
+
+    <script src="include/jquery/jquery-1.11.2.min.js"></script>
+    <script src="include/bootstrap/js/bootstrap.min.js"></script>
 </head>
+
 <body>
-<div class="container">
+    <header>
+        <div class="navbar navbar-default navbar-inverse">
+            <div class="container">
+                <div class="navbar-header">
+                    <a href="" class="navbar-brand">DigiX</a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-  <div class="jumbotron text-center">
-    <h1><span class="fa fa-lock"></span> Node Authentication</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+            <img src="first_page_treasure.jpg" alt="image">
+            </div>
 
-    <p>Login or Register with:</p>
+            <div class="col-sm-6">
+                <div class="well">
 
-    <a href="/login" class="btn btn-default"><span class="fa fa-user"></span> Local Login</a>
-    <a href="/signup" class="btn btn-default"><span class="fa fa-user"></span> Local Signup</a>
-  </div>
+                    <ul class="nav nav-pills nav-justified">
+                        <li class="active"><a href="#LogIn" data-toggle="tab">Log in</a></li>
+                        <li><a href="#SignUp" data-toggle="tab">Sign up</a></li>
+                    </ul>
 
-</div>
-</body>
+                    <div class="tab-content">
+                        <div class="tab-pane fade in active" id="LogIn">
+                            <hr>
+                            <form class="form" method="post" action="/login">
+                                <div class="form-group">
+                                    <input type="text" id="username-input" class="form-control input-md"
+                                           placeholder="username" name="username">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" id="password-input" class="form-control input-md"
+                                           placeholder="password" name="password">
+                                </div>
+                                <div class="text-right">
+                                    <div class="checkbox">
+                                        <label for=""><input type="checkbox">Remember me</label>
+                                    </div>
+                                    <button class="btn btn-primary btn-md" type="submit">Sign in</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="SignUp">
+                            <hr>
+                            <form class="form" method="post" action="/signup">
+                                <div class="form-group">
+                                    <input type="text" id="username-input" class="form-control input-md"
+                                           placeholder="username" name="username">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" id="password-input" class="form-control input-md"
+                                           placeholder="password" name="password">
+                                </div>
+                                <div class="text-right">
+                                    <button class="btn btn-primary btn-md" type="submit">Sign up</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer navbar-fixed-bottom">
+            <div class="container">
+                <div class="navbar-header ">
+                    <div class="text-right">
+                        <a href="#" class="btn btn-sm"> About</a>
+                        <a href="#" class="btn btn-sm"> Contact</a>
+                        <a href="#" class="btn btn-sm"> Help</a>
+
+                        <div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    </body>
 </html>

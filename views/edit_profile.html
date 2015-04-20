@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>DigiX</title>
+	<meta name="description" content="First page">
+
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
+
+    <script src="include/jquery/jquery-1.11.2.min.js"></script>
+    <script src="include/bootstrap/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+	<header>
+		<div class="navbar navbar-default navbar-inverse">
+			<div class="container">
+				<a href="home-page.html" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
+				<a href="#" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
+
+				<div class="dropdown btn-group btn-default">
+    				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+    				<ul class="dropdown-menu">
+        				<li><a href="edit-profile-page.html">Edit profile</a></li>
+        				<li><a href="add-account-page.html">Add account</a></li>
+        				<li class="divider"></li>
+        				<li><a href="http://google.ro">Help</a></li>
+        				<li><a href="first-page.html">Log out</a></li>
+    				</ul>
+				</div>
+
+				<form action="" class="navbar-form navbar-right" role="search">
+					<div class="form-group">
+						<input type="text" class="form-control" placeholder="Search text">
+					</div>
+					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+				</form>
+			</div>
+		</div>
+	</header>
+
+	<div class="container">
+    <h1>Edit Profile</h1>
+  	<hr>
+	<div class="row">
+
+		<!-- PROFILE PICTURE -->
+		<div class="col-lg-3">
+			<div class="text-center">
+				<img src="profile-picture-standard.gif" class="avatar img-circle" alt="avatar">
+				<h6>Upload a different photo...</h6>
+				<span class="btn btn-default btn-file"><input type="file"></span>
+			</div>
+		</div>
+
+		<!-- PROFILE FORM -->
+		<div class="col-lg-9 personal-info">
+			<div class="alert alert-info alert-dismissable">
+				<a class="panel-close close" data-dismiss="alert">×</a>
+				<i class="fa fa-coffee"></i>
+				<strong>Don't make</strong> the content of this form <strong>public</strong>. Press <strong>Save changes</strong> to finish.
+			</div>
+			<h3>Personal info</h3>
+        
+        <form class="form-horizontal" role="form">
+          <div class="form-group">
+            <label class="col-lg-3 control-label">First name:</label>
+            <div class="col-lg-8">
+              <input class="form-control" type="text" value="Firstname from database">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-lg-3 control-label">Last name:</label>
+            <div class="col-lg-8">
+              <input class="form-control" type="text" value="Lastname from database">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-lg-3 control-label">Email:</label>
+            <div class="col-lg-8">
+              <input class="form-control" type="text" value="e-mail from database">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-lg-3 control-label">Time Zone:</label>
+            <div class="col-lg-8">
+              <div class="ui-select">
+                <select id="user_time_zone" class="form-control">
+                  <option value="Hawaii">(GMT-10:00) Hawaii</option>
+                  <option value="Alaska">(GMT-09:00) Alaska</option>
+                  <option value="Pacific Time (US &amp; Canada)">(GMT-08:00) Pacific Time (US &amp; Canada)</option>
+                  <option value="Arizona">(GMT-07:00) Arizona</option>
+                  <option value="Mountain Time (US &amp; Canada)">(GMT-07:00) Mountain Time (US &amp; Canada)</option>
+                  <option value="Central Time (US &amp; Canada)" selected="selected">(GMT-06:00) Central Time (US &amp; Canada)</option>
+                  <option value="Eastern Time (US &amp; Canada)">(GMT-05:00) Eastern Time (US &amp; Canada)</option>
+                  <option value="Indiana (East)">(GMT-05:00) Indiana (East)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-md-3 control-label">Username:</label>
+            <div class="col-md-8">
+              <input class="form-control" type="text" value="Username from database">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-md-3 control-label">Password:</label>
+            <div class="col-md-8">
+              <input class="form-control" type="password" value="1111">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-md-3 control-label">Confirm password:</label>
+            <div class="col-md-8">
+              <input class="form-control" type="password" value="1111">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+              <input type="button" class="btn btn-primary" value="Save Changes">
+            </div>
+          </div>
+        </form>
+      </div>
+  </div>
+</div>
+<hr>
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+</body>	
+</html>

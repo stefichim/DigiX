@@ -1,6 +1,6 @@
 body
 {
-    background: black fixed;
+    background: url('http://farm3.staticflickr.com/2832/12303719364_c25cecdc28_b.jpg') fixed;
     background-size: cover;
     padding: 0;
     margin: 0;
@@ -9,12 +9,9 @@ body
 .wrap
 {
     width: 100%;
-    height: 100%;
-    min-height: 100%;
-    position: absolute;
-    top: 0;
+    height: 70%;
+    margin-top: 30px;
     left: 0;
-    z-index: 99;
 }
 
 p.form-title
