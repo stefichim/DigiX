@@ -8,7 +8,7 @@
 
 	<link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
 	<link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
-
+	<link rel="stylesheet" href="stylesheets/profile.css">
 	<script src="include/jquery/jquery-1.11.2.min.js"></script>
 	<script src="include/bootstrap/js/bootstrap.min.js"></script>
 </head>
@@ -42,5 +42,72 @@
 			</div>
 		</div>
 	</header>
-</body>	
+	<br>
+	<div class="galleryTop">
+		<h2> Gallery </h2>
+		<div class="gallerySettings dropdown btn-group btn-primary">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="galleryBtn"><span class="glyphicon glyphicon-cog"></span></a>
+			<ul class="dropdown-menu">
+				<li><a href="#" id="all">Display all</a></li>
+				<li><a href="#" id="pages">Display in pages</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="galery">
+		<br>
+
+		<div class="pictures" id="allPictures">
+			<a href="/images/scroll/EDIT_0193.jpg" id="sample"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0607.jpg"> <img src="/images/scroll/EDIT_0607.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0607.jpg"> <img src="/images/scroll/EDIT_0607.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>
+			<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>
+		</div>
+
+
+		<div class="pictures " id="paginated">
+			<div id="invisible">
+				<a href="/images/scroll/EDIT_0193.jpg" id="sample"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" 	height=200px></a>
+				<a href="/images/scroll/EDIT_0607.jpg"> <img src="/images/scroll/EDIT_0607.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>
+			</div>
+
+			<div id="visible">
+				<a href="/images/scroll/EDIT_0208.jpg" id="sample"><img src="/images/scroll/EDIT_0208.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0288.jpg"> <img src="/images/scroll/EDIT_0288.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_370-371.jpg"> <img src="/images/scroll/EDIT_370-371.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0391.jpg"> <img src="/images/scroll/EDIT_0391.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>
+				<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>
+			</div>
+
+			<ul class="pager">
+				<li><a href="#" id="prev"> Previous Page </a></li>
+				<li><a href="#" id="next"> Next Page </a></li>
+			</ul>
+		</div>
+
+	</div>
+
+
+	<script src="javascripts/scroll.js"></script>
+
+</body>
 </html>
