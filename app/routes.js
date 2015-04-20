@@ -1,7 +1,7 @@
 // app/routes.js
 module.exports = function(app, passport) {
     app.get('/', function(req, res) {
-        res.render('index.ejs');
+        res.render('index.ejs', { message: req.flash("message") });
     });
 
     app.post('/signup', passport.authenticate('signup', {
@@ -27,6 +27,18 @@ module.exports = function(app, passport) {
             user : req.user
         });
     });
+
+    app.post('/edit_profile', passport.authenticate('edit', {
+        successRedirect : '/profile',
+        failureRedirect : '/profile',
+        failureFlash : true
+    }));
+
+    app.post('/login', isLoggedIn, passport.authenticate('login', {
+        successRedirect : '/profile',
+        failureRedirect : '/',
+        failureFlash : true
+    }));
 
     app.get('/add_account', isLoggedIn, function(req, res) {
         res.render('add_account', {

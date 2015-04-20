@@ -41,10 +41,15 @@
                 <div class="tab-content">
                     <div class="tab-pane fade in active" id="LogIn">
                         <hr>
+
+                        <% if (message.length > 0) { %>
+                        <div class="alert alert-danger"><%= message %></div>
+                        <% } %>
+
                         <form class="form" method="post" action="/login">
                             <div class="form-group">
                                 <input type="text" id="username-input" class="form-control input-md"
-                                       placeholder="email" name="email">
+                                       placeholder="username" name="username">
                             </div>
                             <div class="form-group">
                                 <input type="password" id="password-input" class="form-control input-md"
@@ -61,12 +66,26 @@
 
                     <div class="tab-pane fade" id="SignUp">
                         <hr>
+
+                        <% if (message.length > 0) { %>
+                        <div class="alert alert-danger"><%= message %></div>
+                        <% } %>
+
                         <form class="form" action="/signup" method="post">
                             <div class="form-group">
-                                <input type="text" id="username-input" class="form-control input-md" placeholder="email" name="email">
+                                <input type="text" id="username-input" class="form-control input-md" placeholder="username" name="username">
                             </div>
                             <div class="form-group">
                                 <input type="password" id="password-input" class="form-control input-md" placeholder="password" name="password">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="email-input" class="form-control input-md" placeholder="email" name="email">
+                            </div>
+                            <div class="form-group">
+                                <input type=text" id="first-name-input" class="form-control input-md" placeholder="first_name" name="first_name">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="last-name-input" class="form-control input-md" placeholder="last_name" name="last_name">
                             </div>
                             <div class="text-right">
                                 <button class="btn btn-primary btn-md" type="submit">Sign up</button>

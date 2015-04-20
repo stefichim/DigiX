@@ -64,25 +64,39 @@
 			</div>
 			<h3>Personal info</h3>
         
-        <form class="form-horizontal" role="form">
-          <div class="form-group">
+        <form class="form-horizontal" role="form" action="/profile" method="get">
+            <div class="form-group">
+                <label class="col-md-3 control-label">Username:</label>
+                <div class="col-md-8">
+                    <input class="form-control" type="text" value=<%= user.local.username %>>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-3 control-label">Password:</label>
+                <div class="col-md-8">
+                    <input class="form-control" type="password" value="password">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-lg-3 control-label">Email:</label>
+                <div class="col-lg-8">
+                    <input class="form-control" type="text" value=<%= user.local.email %>>
+                </div>
+            </div>
+            <div class="form-group">
             <label class="col-lg-3 control-label">First name:</label>
             <div class="col-lg-8">
-              <input class="form-control" type="text" value="Firstname from database">
+              <input class="form-control" type="text" value=<%= user.local.first_name %>>
             </div>
           </div>
           <div class="form-group">
             <label class="col-lg-3 control-label">Last name:</label>
             <div class="col-lg-8">
-              <input class="form-control" type="text" value="Lastname from database">
+              <input class="form-control" type="text" value=<%= user.local.last_name %>>
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-lg-3 control-label">Email:</label>
-            <div class="col-lg-8">
-              <input class="form-control" type="text" value="e-mail from database">
-            </div>
-          </div>
+            <!--
           <div class="form-group">
             <label class="col-lg-3 control-label">Time Zone:</label>
             <div class="col-lg-8">
@@ -100,28 +114,11 @@
               </div>
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-md-3 control-label">Username:</label>
-            <div class="col-md-8">
-              <input class="form-control" type="text" value="Username from database">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-md-3 control-label">Password:</label>
-            <div class="col-md-8">
-              <input class="form-control" type="password" value="1111">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="col-md-3 control-label">Confirm password:</label>
-            <div class="col-md-8">
-              <input class="form-control" type="password" value="1111">
-            </div>
-          </div>
+          -->
           <div class="form-group">
             <label class="col-md-3 control-label"></label>
             <div class="col-md-8">
-              <input type="button" class="btn btn-primary" value="Save Changes">
+              <input type="submit" class="btn btn-primary" value="Save Changes">
             </div>
           </div>
         </form>
