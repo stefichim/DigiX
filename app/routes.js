@@ -4,6 +4,7 @@ module.exports = function(app, passport) {
         res.render('index.ejs', { message: req.flash("message") });
     });
 
+
     app.post('/signup', passport.authenticate('signup', {
         successRedirect : '/profile',
         failureRedirect : '/',
@@ -41,7 +42,28 @@ module.exports = function(app, passport) {
     }));
 
     app.get('/add_account', isLoggedIn, function(req, res) {
-        res.render('add_account', {
+        res.render('facebook.ejs', {
+            user : req.user
+        });
+    });
+
+    app.get('/flickr', isLoggedIn, function(req, res) {
+        res.render('flickr.ejs', {
+            user : req.user
+        });
+    });
+    app.get('/facebook', isLoggedIn, function(req, res) {
+        res.render('facebook.ejs', {
+            user : req.user
+        });
+    });
+    app.get('/google', isLoggedIn, function(req, res) {
+        res.render('google+.ejs', {
+            user : req.user
+        });
+    });
+    app.get('/twitter', isLoggedIn, function(req, res) {
+        res.render('twitter.ejs', {
             user : req.user
         });
     });

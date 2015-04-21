@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+		<title>Nifty Modal Window Effects</title>
+		<meta name="description" content="Nifty Modal Window Effects with CSS Transitions and Animations" />
+		<meta name="keywords" content="modal, window, overlay, modern, box, css transition, css animation, effect, 3d, perspective" />
+		<meta name="author" content="Codrops" />
+		<link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
+
+		<script src="include/jquery/jquery-1.11.2.min.js"></script>
+		<script src="include/bootstrap/js/bootstrap.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="stylesheets/flickr/default.css" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/flickr/component.css" />
+		
+		<link rel="stylesheet" href="profile.css">
+		<script src="js/modernizr.custom.js"></script>
+	</head>
+	<header>
+		<div class="navbar navbar-default navbar-inverse">
+			<div class="container">
+                <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in as: </p>
+
+                <a href="profile" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
+				<a href="#" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
+
+				<div class="dropdown btn-group btn-default">
+    				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+    				<ul class="dropdown-menu">
+        				<li><a href="edit_profile">Edit profile</a></li>
+        				<li><a href="add_account">Add account</a></li>
+        				<li class="divider"></li>
+        				<li><a href="http://google.ro">Help</a></li>
+        				<li><a href="logout">Log out</a></li>
+    				</ul>
+				</div>
+
+				<form action="" class="navbar-form navbar-right" role="search">
+					<div class="form-group">
+						<input type="text" class="form-control" placeholder="Search text">
+					</div>
+					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+				</form>
+			</div>
+		</div>
+	</header>
+	
+
+	<body>
+		<!-- All modals added here for the demo. You would of course just have one, dynamically created -->
+		<div class="md-modal md-effect-1" id="modal-1">
+			<div class="md-content">
+				<h3>Flickr</h3>
+				<div>
+					<p>Enter you Flickr credentials to get photos from here too:</p>
+					<br>
+					<form>
+						<strong>Email/Phone:</strong> <input type="text" name="fEmail" placeholder="flickr e-mail/phone" size="30">
+						<br> <br>
+						<strong>Password:</strong> <input type="password" name="fPass" placeholder="flickr password" size="30">
+						<br> <br>
+						<strong>Password:</strong> <input type="password" name="fPass2" placeholder="write password again" size="30">
+						
+					</form>
+					<br>
+					<div class="md-close ">
+						<button>Save</button>
+						<button>Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="containerF">
+			<!-- Top Navigation -->
+
+			<header>
+				<h1>Flicker<span>Shoot! Download! Flick!</span></h1>
+			</header>
+			<div class="main clearfix">
+				<div class="column">
+					<p>Are you the pround owner of a Flicr account? How about showcasing all your work from here. Just login and review your proudest photos.</p>
+				</div>
+				<div class="column">
+					<button class="md-trigger" data-modal="modal-1">Sync Flickr</button>
+				</div>
+			</div>
+		</div><!-- /container -->
+		<div class="md-overlay"></div>
+		<br>
+		<ul class="pager">
+			<li><a href="twitter" id="previous">Previous</a></li>
+			<li><a href="facebook" id="next">Next</a></li>
+		</ul>
+
+
+		<script src="javascripts/classie.js"></script>
+		<script src="javascripts/modalEffects.js"></script>
+
+		<script>
+			// this is important for IEs
+			var polyfilter_scriptpath = '/js/';
+		</script>
+		<script src="javascripts/cssParser.js"></script>
+		<script src="javascripts/css-filters-polyfill.js"></script>
+		<script src="javascripts/all.js"></script>
+	</body>
+</html>
