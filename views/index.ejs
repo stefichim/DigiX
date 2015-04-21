@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="stylesheets\index.css">
 
     <script src="include/jquery/jquery-1.11.2.min.js"></script>
     <script src="include/bootstrap/js/bootstrap.min.js"></script>
@@ -18,7 +19,7 @@
     <div class="navbar navbar-default navbar-inverse">
         <div class="container">
             <div class="navbar-header">
-                <a href="" class="navbar-brand">DigiX</a>
+                <a href="#" class="navbar-brand" style="font-family:Consolas; font-weight:bold">DigiX</a>
             </div>
         </div>
     </div>
@@ -26,12 +27,8 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-6">
-            <img src="images/first_page_treasure.jpg" alt="image">
-        </div>
-
-        <div class="col-sm-6">
-            <div class="well">
+        <div class="col-sm-4 pull-right">
+            <div class="well" style="background: none; border:0; box-shadow:0 0 0 0;">
 
                 <ul class="nav nav-pills nav-justified">
                     <li class="active"><a href="#LogIn" data-toggle="tab">Log in</a></li>
@@ -45,7 +42,6 @@
                         <% if (message.length > 0) { %>
                         <div class="alert alert-danger"><%= message %></div>
                         <% } %>
-
                         <form class="form" method="post" action="/login">
                             <div class="form-group">
                                 <input type="text" id="username-input" class="form-control input-md"
@@ -56,9 +52,6 @@
                                        placeholder="password" name="password">
                             </div>
                             <div class="text-right">
-                                <div class="checkbox">
-                                    <label for=""><input type="checkbox">Remember me</label>
-                                </div>
                                 <button class="btn btn-primary btn-md" type="submit">Sign in</button>
                             </div>
                         </form>
@@ -82,10 +75,10 @@
                                 <input type="text" id="email-input" class="form-control input-md" placeholder="email" name="email">
                             </div>
                             <div class="form-group">
-                                <input type=text" id="first-name-input" class="form-control input-md" placeholder="first_name" name="first_name">
+                                <input type=text" id="first-name-input" class="form-control input-md" placeholder="first_name" name="first name">
                             </div>
                             <div class="form-group">
-                                <input type="text" id="last-name-input" class="form-control input-md" placeholder="last_name" name="last_name">
+                                <input type="text" id="last-name-input" class="form-control input-md" placeholder="last_name" name="last name">
                             </div>
                             <div class="text-right">
                                 <button class="btn btn-primary btn-md" type="submit">Sign up</button>
@@ -102,11 +95,11 @@
 <footer>
     <div class="footer navbar-fixed-bottom">
         <div class="container">
-            <div class="navbar-header ">
+            <div class="navbar-header">
                 <div class="text-right">
-                    <a href="#" class="btn btn-sm"> About</a>
-                    <a href="#" class="btn btn-sm"> Contact</a>
-                    <a href="#" class="btn btn-sm"> Help</a>
+                    <a href="#" class="btn btn-sm" style="color:white">About</a>
+                    <a href="#" class="btn btn-sm" style="color:white">Contact</a>
+                    <a href="#" class="btn btn-sm" style="color:white">Help</a>
 
                     <div>
                     </div>
