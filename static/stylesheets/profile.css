@@ -1,7 +1,7 @@
 
 .pictures{
     margin: 0 auto;
-    width:60%;
+    width:70%;
     border:1px solid #333;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -49,7 +49,7 @@
 	display: block;
 }
 #paginated{
-	display: hidden;
+	display: none;
 }
 #allPictures{
 	display: block;

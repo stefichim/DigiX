@@ -22,7 +22,8 @@ function last3(){
 
 
 $(document).ready(function(){
-	$("#allPictures").attr('display','none');
+	$("#paginated").css('display','none');
+	$("#allPictures").css('display','block');
 	console.log("ready");
 });
 
@@ -46,12 +47,14 @@ $( "#prev" ).click(function() {
    // $("#invisible").fadeIn("slow",function(){});
 });
 $( "#next" ).click(function() {
-  alert( "Handler for .click() called." );
+	$("#visible").attr('id','temp');
+	$("#invisible").attr('id','visible');
+	$("#temp").attr('id','invisible');
 });
 
 $( "#all" ).click(function() {
-	$("#paginated").attr('display','none');
-	$("#allPictures").attr('display','block');
+	$("#paginated").css('display','none');
+	$("#allPictures").css('display','block');
 	$("paginated").hide();
 	$("#allPictures").show();
 	display="all";
@@ -60,8 +63,8 @@ $( "#all" ).click(function() {
 });
 
 $( "#pages" ).click(function() {
-	$("#allPictures").attr('display','none');
-	$("#paginated").attr('display','block');
+	$("#allPictures").css('display','none');
+	$("#paginated").css('display','block');
 	$("#allPictures").hide();
 	$("paginated").show();
 	display="page";
