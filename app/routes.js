@@ -22,7 +22,11 @@ module.exports = function(app, passport) {
     }));
 
     app.get('/profile', isLoggedIn, function(req, res) {
-        req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
+        var query={};
+        if(req.query.q){
+            query['tags']={"$in":req.query.q.split(" ")}
+        }
+        req.db.collection(req.user.local.username).find(query,{'_id':false,'tags':false},function(err, cursor){
             if (err){
              res.send("Error"); 
             }
@@ -97,6 +101,27 @@ module.exports = function(app, passport) {
         });
     });
 
+    app.get('/refresh', isLoggedIn, function(req, res) {
+        req.db.collection('users').findOne({'_id': req.user['_id']}, function(err, result) {
+            if (err) {
+                console.log(err);
+            } if(!result.instagram.access_token){
+                console.log("no acesstoken");
+                next();
+            }else {
+                var user=result.local
+                req.db.collection(user.username).remove({});
+                getInstagramPictures(req, res, function(err,result){
+                    if(err){
+                        console.log(err)
+                    }else{
+                        res.redirect('/profile');
+                    }
+                });
+            }
+        });
+    });
+
     app.get('/flickr', isLoggedIn, function(req, res) {
         res.render('flickr.ejs', {
             user : req.user
@@ -164,7 +189,7 @@ function getInstagramPictures(req, res, next) {
                                     tags[comment.from.username]=true;
                                     var words = comment.from.full_name.split(" ");
                                     words.forEach(function (element, index, array){
-                                        tags[element] = true;
+                                        tags[element.toLowerCase()] = true;
                                     });
                                     //tags[comment.from.full_name]=true;
                                     _cb();
@@ -174,7 +199,7 @@ function getInstagramPictures(req, res, next) {
                                 async.each(media.comments.data, function(comment, _cb) {
                                     var words = comment.text.split(" ");
                                     words.forEach(function (element, index, array){
-                                        tags[element] = true;
+                                        tags[element.toLowerCase()] = true;
                                     });
                                     _cb();
                                 }, _callback);
@@ -182,10 +207,10 @@ function getInstagramPictures(req, res, next) {
                             //aici se termina incercarea
                             function(_callback) {
                                 async.each(media.likes.data, function(like, _cb) {
-                                    tags[like.username]=true;
+                                    tags[like.username.toLowerCase()]=true;
                                     var words = like.full_name.split(" ");
                                     words.forEach(function (element, index, array){
-                                        tags[element] = true;
+                                        tags[element.toLowerCase()] = true;
                                     });
                                     //tags[like.full_name]=true;
                                     _cb();
@@ -193,10 +218,10 @@ function getInstagramPictures(req, res, next) {
                             },
                             function(_callback) {
                                 async.each(media.users_in_photo, function(user, _cb) {
-                                    tags[user.user.username]=true;
+                                    tags[user.user.username.toLowerCase()]=true;
                                     var words = user.user.full_name.split(" ");
                                     words.forEach(function (element, index, array){
-                                        tags[element] = true;
+                                        tags[element.toLowerCase()] = true;
                                     });
                                     //tags[user.user.full_name]=true;
                                     _cb();
@@ -204,8 +229,8 @@ function getInstagramPictures(req, res, next) {
                             },
                             function(_callback) {
                                 async.each(media.tags, function(tag, _cb) {
-                                    tags[tag]=true;
-                                    tags[tag]=true;
+                                    tags[tag.toLowerCase()]=true;
+                                    tags[tag.toLowerCase()]=true;
                                     _cb();
                                 }, _callback);
                             }
@@ -214,11 +239,11 @@ function getInstagramPictures(req, res, next) {
                                 'url': url,
                                 'tags': Object.keys(tags)
                             });
-                            console.dir(my_medias);
+                            //console.dir(my_medias);
                             callback();
                         });
                     }, function() {
-                        console.log(user.username);
+                        //console.log(user.username);
                         req.db.collection(user.username).insert(my_medias,function(err,res){
                             if(err){
                                 next(err);
