@@ -44,7 +44,7 @@ $( "#prev" ).click(function() {
   $("#invisible").attr('id','visible');
   $("#temp").attr('id','invisible');
 
-   // $("#invisible").fadeIn("slow",function(){});
+
 });
 $( "#next" ).click(function() {
 	$("#visible").attr('id','temp');

@@ -46,12 +46,17 @@ module.exports = function(passport) {
                         // create the user
                         var newUser            = new User();
 
+                        newUser.username= username;
+                        newUser.password   = newUser.generateHash(password);
+                        newUser.email      = req.body.email;
+                        newUser.first_name = req.body.first_name;
+                        newUser.last_name  = req.body.last_name;
                         // set the user's local credentials
-                        newUser.local.username   = username;
+                       /* newUser.local.username   = username;
                         newUser.local.password   = newUser.generateHash(password);
                         newUser.local.email      = req.body.email;
                         newUser.local.first_name = req.body.first_name;
-                        newUser.local.last_name  = req.body.last_name;
+                        newUser.local.last_name  = req.body.last_name;*/
 
                         // save the user
                         newUser.save(function(err) {
@@ -77,7 +82,7 @@ module.exports = function(passport) {
 
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
-            User.findOne({ 'local.username' : username }, function(err, user) {
+            User.findOne({ 'username' : username }, function(err, user) {
                 // if there are any errors, return the error before anything else
                 if (err)
                     return done(err);

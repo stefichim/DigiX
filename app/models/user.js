@@ -4,9 +4,45 @@ var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
 
 // define the schema for our user model
+
+var privateSchema= {
+    flickr: {
+        consumer_key : '3df130b07fe77f78ba318d87fe192c00',
+        consumer_secret: '1d3e72bacff0745c'
+    }
+};
+
+
 var userSchema = mongoose.Schema({
 
-    local            : {
+    username: String,
+    password: String,
+    email : String,
+    first_name: String,
+    last_name: String,
+
+    flickr : {
+        token : String,
+        token_secret: String
+    },
+    facebook: {
+        token: String,
+        token_secret: String
+    },
+    instagram: {
+        token: String,
+        token_secret : String
+    },
+    google :{
+        token: String,
+        token_secret : String
+    },
+    photos : [{
+        url: String,
+        tags : [String]
+    }]
+
+    /*local            : {
         username     : String,
         password     : String,
         email        : String,
@@ -31,6 +67,11 @@ var userSchema = mongoose.Schema({
         email        : String,
         name         : String
     }
+    , flickr : {
+        username: String,
+        token: String,
+        token_secret: String
+    }*/
 
 });
 
@@ -42,8 +83,9 @@ userSchema.methods.generateHash = function(password) {
 
 // checking if password is valid
 userSchema.methods.validPassword = function(password) {
-    return bcrypt.compareSync(password, this.local.password);
+
+    return bcrypt.compareSync(password, this.password);
 };
 
 // create the model for users and expose it to our app
-module.exports = mongoose.model('User', userSchema);
+module.exports =mongoose.model('User', userSchema);

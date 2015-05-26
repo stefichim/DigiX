@@ -25,6 +25,7 @@
     "passport-local": "~0.1.6",
     "passport-twitter": "~1.0.2",
     "request": "~2.55.0",
-    "serve-favicon": "~2.2.0"
+    "serve-favicon": "~2.2.0",
+    "querystring" : "0.2.0"
   }
 }

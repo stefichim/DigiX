@@ -7,3 +7,4 @@ $(document).ready(function () {
         $(".pr-wrap").removeClass("show-pass-reset");
     });
 });
+
