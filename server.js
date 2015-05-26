@@ -11,6 +11,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
 var session      = require('express-session');
 
+var ig = require('instagram-node').instagram();
+var MongoClient = require('mongodb').MongoClient;
+var mongodb = require('express-mongo-db');
+
+
 // configuration
 app.use(express.static(__dirname + '/static'));
 
@@ -19,6 +24,7 @@ app.use(favicon('static/images/digix.ico'));
 
 var configDB = require('./config/database.js');
 mongoose.connect(configDB.url);
+
 
 require('./config/passport')(passport); // pass passport for configuration
 
@@ -39,6 +45,20 @@ app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 
 // routes ======================================================================
+app.use(function(req,res,next){
+	req.ig=ig;
+	next();
+});
+app.use(mongodb(require('mongodb'), {
+	hosts: [{
+		host: 'localhost',
+		port: 27017
+	}],
+	mongoClient: {
+		slaveOk: true
+	},
+	database: 'DigiX'
+}));
 require('./app/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
 
 // launch ======================================================================

@@ -4,8 +4,8 @@
 		<meta charset="UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-		<title>DigiX - Twitter Sync</title>
-		<meta name="description" content="DigiX - Twitter Sync" />
+		<title>DigiX - Instagram Sync</title>
+		<meta name="description" content="DigiX - Instagram Sync" />
 		<meta name="keywords" content="modal, window, overlay, modern, box, css transition, css animation, effect, 3d, perspective" />
 		<meta name="author" content="DigiX" />
 		<link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
@@ -13,8 +13,8 @@
 
 		<script src="include/jquery/jquery-1.11.2.min.js"></script>
 		<script src="include/bootstrap/js/bootstrap.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="stylesheets/twitter/default.css" />
-		<link rel="stylesheet" type="text/css" href="stylesheets/twitter/component.css" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/instagram/default.css" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/instagram/component.css" />
 	</head>
 	<header>
 		<div class="navbar navbar-default navbar-inverse">
@@ -28,7 +28,7 @@
 					<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
 					<ul class="dropdown-menu">
 						<li><a href="edit_profile">Edit profile</a></li>
-						<li><a href="twitter">Add account</a></li>
+						<li><a href="instagram">Add account</a></li>
 						<li class="divider"></li>
 						<li><a href="http://google.ro">Help</a></li>
 						<li><a href="logout">Log out</a></li>
@@ -48,14 +48,14 @@
 		<!-- All modals added here for the demo. You would of course just have one, dynamically created -->
 		<div class="md-modal md-effect-1" id="modal-1">
 			<div class="md-content">
-				<h3>Twitter</h3>
+				<h3>Instagram</h3>
 				<div>
-					<p>Enter you Twitter credentials to get photos from here too:</p>
+					<p>Enter you Instagram credentials to get photos from here too:</p>
 					<br>
 					<form>
-						<strong>Email/Phone:</strong> <input type="text" name="fEmail" placeholder="twitter e-mail/phone" size="30">
+						<strong>Email/Phone:</strong> <input type="text" name="fEmail" placeholder="instagram, e-mail/phone" size="30">
 						<br> <br>
-						<strong>Password:</strong> <input type="password" name="fPass" placeholder="twitter password" size="30">
+						<strong>Password:</strong> <input type="password" name="fPass" placeholder="instagram password" size="30">
 						<br> <br>
 						<strong>Password:</strong> <input type="password" name="fPass2" placeholder="write password again" size="30">
 						
@@ -73,16 +73,15 @@
 			<!-- Top Navigation -->
 
 			<header>
-				<h1>Twitter<span>Twitt twitt twitt...photos incoming!!!</span></h1>
+				<h1>Instagram<span>Fast beautiful photo sharing</span></h1>
 			</header>
 			<div class="main clearfix">
 				<div class="column">
-					<p>Are you a twitter? Do you have photographic memories
-						twitted to friends ? Well, let's twitt-store them. It's as easy as a login. Litteraly!
+					<p>Are you on instagram? Do you have photographic memorie on Instagram? Well, let's insta-store them. It's as easy as a login. Litteraly!
 						</p>
 				</div>
 				<div class="column">
-					<button class="md-trigger" data-modal="modal-1">Sync Twitter</button>
+					<a href="https://instagram.com/oauth/authorize/?client_id=094ce9a906634c468f99aaa7da117b65&redirect_uri=http://localhost:2080/instagram/code&response_type=code" class="btn btn-default" >Sync Instagram</a>
 				</div>
 			</div>
 		</div><!-- /container -->
