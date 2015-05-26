@@ -1,8 +1,12 @@
 // app/routes.js
 var request         =require('../node_modules/request/index.js');
 // load up the user model
+var mongoose = require('mongoose');
 var User            = require('../app/models/user');
+var muci =  require('../app/models/user.js');
 var async           = require('../node_modules/async');
+var privateInfo= require('../app/models/private');
+var qs = require('querystring');
 
 module.exports = function(app, passport) {
     app.get('/', function(req, res) {
@@ -22,9 +26,9 @@ module.exports = function(app, passport) {
     }));
 
     app.get('/profile', isLoggedIn, function(req, res) {
-        req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
+        req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
             if (err){
-             res.send("Error"); 
+                res.send("Error");
             }
             else {
                 cursor.toArray(function(err,result){
@@ -35,34 +39,173 @@ module.exports = function(app, passport) {
                 })
             }
         })
-        
+
     });
+
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+    // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+    app.get('/sync/Flickr', isLoggedIn, function(req,res){
+        var tempUsername=req.user;
+        console.log("pavaloaquis");
+        console.log(tempUsername);
+
+        var  oauth = {
+                callback: 'http://localhost:2080/flickr/code'
+                , consumer_key: privateInfo.flickr.consumer_key
+                , consumer_secret: privateInfo.flickr.consumer_secret }
+            , url = 'https://www.flickr.com/services/oauth/request_token';
+
+        request.post({url:url, oauth:oauth}, function(e,r,body){
+
+            var req_data=qs.parse(body);
+            var uri='https://www.flickr.com/services/oauth/authorize' + '?'+
+                qs.stringify({oauth_token:req_data.oauth_token});
+            res.redirect(uri);
+
+
+            app.get('/flickr/code',function(req,res) {
+                var  oauth =
+                    {   consumer_key: privateInfo.flickr.consumer_key
+                        , consumer_secret: privateInfo.flickr.consumer_secret
+                        , token: req.query.oauth_token
+                        , token_secret: req_data.oauth_token_secret
+                        , verifier: req.query.oauth_verifier
+                    }
+                    , url = 'https://www.flickr.com/services/oauth/access_token'
+                    ;
+                console.log("before");
+                console.log(req.query.oauth_token);
+                console.log(req_data.oauth_token_secret);
+                console.log(req.query.oauth_verifier);
+                console.log("after");
+                request.post({url:url, oauth:oauth}, function (e, r, body) {
+
+                    var perm_data = qs.parse(body)
+                        , oauth =
+                        { consumer_key: privateInfo.flickr.consumer_key
+                            , consumer_secret: privateInfo.flickr.consumer_secret
+                            , token: perm_data.oauth_token
+                            , token_secret: perm_data.oauth_token_secret
+                        };
+
+                    //request.get('/profile');
+                    console.log("nsid");
+                    console.log(perm_data.user_nsid);
+                    var req = {
+                        username: tempUsername.username,
+                        oauth_token: perm_data.oauth_token,
+                        oauth_token_secret: perm_data.oauth_token_secret
+                    };
+
+                    updateFlickrCredentials(req);
+                    res.redirect("/profile");
+                });
+
+
+            });
+
+        });
+
+    });
+
+    function updateFlickrCredentials(req){
+        console.log("update");
+        console.log(req);
+
+        User.findOne({'username': req.username}, function(err,user){
+            user.flickr.token=req.oauth_token;
+            user.flickr.token_secret=req.oauth_token_secret;
+            user.save(function(err, next){
+                console.log(err);
+                return getFlickrPictues(req);
+            });
+        });
+
+    }
+
+    function getFlickrPictues(req){
+        console.log("get");
+        console.log(req);
+        var oauth_token,oauth_token_secret;
+        User.findOne({username: req.username}, function(err,user){
+            if(err) {
+                console.log("Eroare la gasit user!");
+                return;
+            }
+            var oauth = {
+                consumer_key: privateInfo.flickr.consumer_key
+                , consumer_secret: privateInfo.flickr.consumer_secret
+                , token: user.flickr.token
+                , token_secret: user.flickr.token_secret
+            };
+            var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.people.getPhotos'+
+                '&'+'user_id=131928155%40N02' + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
+            request.get({url:url, oauth:oauth}, function(e,r,body){
+                if(e) return;
+                return insertDatabase(JSON.parse(body));
+            });
+        });
+    }
+
+    function insertDatabase(body){
+        User.findOne({username: 'a'}, function(err,user) {
+            if(err) {
+                console.dir(err);
+            }
+            for(i=0;i<body.photos.total;i++){
+                var rspPhoto=body.photos.photo[i];
+                console.log(rspPhoto);
+                var url='https://farm'+rspPhoto.farm + '.staticflickr.com/'
+                    + rspPhoto.server + '/'+ rspPhoto.id+'_'+rspPhoto.secret
+                    +'.jpg';
+
+                user.photos.push({'url': url, 'tags': ['ceva']});
+            }
+            user.save(function(err, next){
+
+                return check(user);
+            });
+        });
+    }
+
+    function check(user){
+        console.log(user.photos);
+    }
+
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+    // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
+    //----------------------------------------------------------
+    //----------------------------------------------------------
 
     app.get('/instagram/code', isLoggedIn, function(req, res) {
         if(req.query && req.query.code){
-                var data= {
-                    'client_id': '094ce9a906634c468f99aaa7da117b65',
-                    'client_secret': 'f697fdd797e042e19f6430294f3d5a1e',
-                    'redirect_uri': 'http://localhost:2080/instagram/code',
-                    'grant_type': 'authorization_code',
-                    'code': req.query.code
-                }
-                request.post(
-                    {url:'https://api.instagram.com/oauth/access_token', form: data},
-                    function(err,httpResponse,body){
-                        var instagram_token=JSON.parse(body);
-                        req.db.collection('users').update(
-                            {'_id':req.user['_id']}, 
-                            {"$set":{"instagram":instagram_token}}
-                            ,function(err,result){
-                                if(err){console.log(err);}
-                                 getInstagramPictures(req, res, function(err,result){
-                                    if(err){
-                                        console.log(err)
-                                    }else{
-                                        res.redirect('/profile');}
-                                 });
-                        });    
+            var data= {
+                'client_id': '094ce9a906634c468f99aaa7da117b65',
+                'client_secret': 'f697fdd797e042e19f6430294f3d5a1e',
+                'redirect_uri': 'http://localhost:2080/instagram/code',
+                'grant_type': 'authorization_code',
+                'code': req.query.code
+            }
+            request.post(
+                {url:'https://api.instagram.com/oauth/access_token', form: data},
+                function(err,httpResponse,body){
+                    var instagram_token=JSON.parse(body);
+                    req.db.collection('users').update(
+                        {'_id':req.user['_id']},
+                        {"$set":{"instagram":instagram_token}}
+                        ,function(err,result){
+                            if(err){console.log(err);}
+                            getInstagramPictures(req, res, function(err,result){
+                                if(err){
+                                    console.log(err)
+                                }else{
+                                    res.redirect('/profile');}
+                            });
+                        });
                 });
         }
     });
@@ -111,7 +254,7 @@ module.exports = function(app, passport) {
     app.get('/photos',isLoggedIn, function(req, res){
         req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
             if (err){
-             res.send("Error"); 
+                res.send("Error");
             }
             else {
                 cursor.toArray(function(err,result){
