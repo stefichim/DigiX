@@ -22,8 +22,7 @@ function last3(){
 
 
 $(document).ready(function(){
-	$("#paginated").css('display','none');
-	$("#allPictures").css('display','block');
+	$("#allPictures").attr('display','none');
 	console.log("ready");
 });
 
@@ -44,17 +43,15 @@ $( "#prev" ).click(function() {
   $("#invisible").attr('id','visible');
   $("#temp").attr('id','invisible');
 
-
+   // $("#invisible").fadeIn("slow",function(){});
 });
 $( "#next" ).click(function() {
-	$("#visible").attr('id','temp');
-	$("#invisible").attr('id','visible');
-	$("#temp").attr('id','invisible');
+  alert( "Handler for .click() called." );
 });
 
 $( "#all" ).click(function() {
-	$("#paginated").css('display','none');
-	$("#allPictures").css('display','block');
+	$("#paginated").attr('display','none');
+	$("#allPictures").attr('display','block');
 	$("paginated").hide();
 	$("#allPictures").show();
 	display="all";
@@ -63,8 +60,8 @@ $( "#all" ).click(function() {
 });
 
 $( "#pages" ).click(function() {
-	$("#allPictures").css('display','none');
-	$("#paginated").css('display','block');
+	$("#allPictures").attr('display','none');
+	$("#paginated").attr('display','block');
 	$("#allPictures").hide();
 	$("paginated").show();
 	display="page";
