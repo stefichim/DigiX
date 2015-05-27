@@ -26,19 +26,34 @@ module.exports = function(app, passport) {
     }));
 
     app.get('/profile', isLoggedIn, function(req, res) {
-        req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
-            if (err){
-                res.send("Error");
+        User.findOne({'username': req.user.username}, function(err,user){
+            if (err) console.log(err);
+            else{
+                var my_pictures = [];
+                user.photos.forEach(function (photo){
+                    my_pictures.push(photo.url);
+                });
+                res.render('profile', {
+                    user : user,
+                    photos: my_pictures
+                });
             }
-            else {
-                cursor.toArray(function(err,result){
-                    res.render('profile', {
-                        user : req.user,
-                        photos:result
-                    });
-                })
-            }
-        })
+        });
+
+
+        //req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
+        //    if (err){
+        //        res.send("Error");
+        //    }
+        //    else {
+        //        cursor.toArray(function(err,result){
+        //            res.render('profile', {
+        //                user : req.user,
+        //                photos:result
+        //            });
+        //        })
+        //    }
+        //})
 
     });
 
