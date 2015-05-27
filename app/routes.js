@@ -1,12 +1,12 @@
 // app/routes.js
 var request         =require('../node_modules/request/index.js');
 // load up the user model
-var mongoose = require('mongoose');
+var mongoose        = require('mongoose');
 var User            = require('../app/models/user');
-var muci =  require('../app/models/user.js');
+var muci            =  require('../app/models/user.js');
 var async           = require('../node_modules/async');
-var privateInfo= require('../app/models/private');
-var qs = require('querystring');
+var privateInfo     = require('../app/models/private');
+var qs              = require('querystring');
 
 module.exports = function(app, passport) {
     app.get('/', function(req, res) {
@@ -336,8 +336,15 @@ module.exports = function(app, passport) {
                                 callback();
                             });
                         }, function() {
-                            user.photos = user.photos.concat(my_medias);
-                            console.log(user.photos);
+                            //user.photos = user.photos.concat(my_medias);
+                            //a.push.apply(a, b)
+                            user.photos.push.apply(user.photos, my_medias);
+                            //console.log(user.photos);
+                            user.save(function(err){
+                                if(err) {
+                                    console.dir(err);
+                                }
+                            });
                             next(null, null);
                         });
                     }
