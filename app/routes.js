@@ -47,11 +47,8 @@ module.exports = function(app, passport) {
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
     //----------------------------------------------------------
     //----------------------------------------------------------
-    app.get('/sync/Flickr', isLoggedIn, function(req,res){
+    app.get('/sync/Flickr', isLoggedIn, function(req,res,next){
         var tempUsername=req.user;
-        console.log("pavaloaquis");
-        console.log(tempUsername);
-
         var  oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -64,8 +61,6 @@ module.exports = function(app, passport) {
             var uri='https://www.flickr.com/services/oauth/authorize' + '?'+
                 qs.stringify({oauth_token:req_data.oauth_token});
             res.redirect(uri);
-
-
             app.get('/flickr/code',function(req,res) {
                 var  oauth =
                     {   consumer_key: privateInfo.flickr.consumer_key
@@ -76,11 +71,6 @@ module.exports = function(app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
-                console.log("before");
-                console.log(req.query.oauth_token);
-                console.log(req_data.oauth_token_secret);
-                console.log(req.query.oauth_verifier);
-                console.log("after");
                 request.post({url:url, oauth:oauth}, function (e, r, body) {
 
                     var perm_data = qs.parse(body)
@@ -91,17 +81,17 @@ module.exports = function(app, passport) {
                             , token_secret: perm_data.oauth_token_secret
                         };
 
-                    //request.get('/profile');
-                    console.log("nsid");
-                    console.log(perm_data.user_nsid);
                     var req = {
                         username: tempUsername.username,
                         oauth_token: perm_data.oauth_token,
-                        oauth_token_secret: perm_data.oauth_token_secret
+                        oauth_token_secret: perm_data.oauth_token_secret,
+                        nsid: perm_data.user_nsid
                     };
-
+                    console.log("nsid");
+                    console.log(req.nsid);
                     updateFlickrCredentials(req);
-                    res.redirect("/profile");
+                    res.redirect('/profile');
+
                 });
 
 
@@ -112,8 +102,6 @@ module.exports = function(app, passport) {
     });
 
     function updateFlickrCredentials(req){
-        console.log("update");
-        console.log(req);
 
         User.findOne({'username': req.username}, function(err,user){
             user.flickr.token=req.oauth_token;
@@ -127,12 +115,9 @@ module.exports = function(app, passport) {
     }
 
     function getFlickrPictues(req){
-        console.log("get");
-        console.log(req);
-        var oauth_token,oauth_token_secret;
         User.findOne({username: req.username}, function(err,user){
             if(err) {
-                console.log("Eroare la gasit user!");
+                console.dir(err);
                 return;
             }
             var oauth = {
@@ -142,38 +127,67 @@ module.exports = function(app, passport) {
                 , token_secret: user.flickr.token_secret
             };
             var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.people.getPhotos'+
-                '&'+'user_id=131928155%40N02' + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
+                '&'+'user_id='+ req.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
             request.get({url:url, oauth:oauth}, function(e,r,body){
-                if(e) return;
-                return insertDatabase(JSON.parse(body));
+                if(e) {
+                    console.dir(e);
+                    return;
+                }
+                return insertDatabase(req,JSON.parse(body));
             });
         });
     }
 
-    function insertDatabase(body){
-        User.findOne({username: 'a'}, function(err,user) {
+
+    function insertDatabase(req,body){
+        var count=0;
+        User.findOne({username: req.username}, function(err,user) {
+            if (err) {
+                console.dir(err);
+                return;
+            }
+            return nextPicture(req,body,count,user);
+        });
+
+    }
+    function nextPicture(req,photos,count,user, res){
+        var total=photos.photos.total;
+        if(count==total) return check(user);
+        var rspPhoto=photos.photos.photo[count];
+        var photoUrl='https://farm'+rspPhoto.farm + '.staticflickr.com/'
+            + rspPhoto.server + '/'+ rspPhoto.id+'_'+rspPhoto.secret
+            +'.jpg';
+        var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.tags.getListPhoto'+
+                '&'+'photo_id='+ rspPhoto.id + '&format=json&nojsoncallback=1'
+            , oauth = {
+                consumer_key: privateInfo.flickr.consumer_key
+                ,consumer_secret: privateInfo.flickr.consumer_secret
+            };
+        request.get({url:url, oauth:oauth}, function(e,r,body){
+            if(e) {
+                console.dir(e);
+                return;
+            }
+            var tags=JSON.parse(body);
+            var realTags = [];
+            for(j=0;j<tags.photo.tags.tag.length;j++){
+                realTags.push(tags.photo.tags.tag[j].raw);
+            }
+            console.log(realTags);
+            user.photos.push({'url': photoUrl, 'tags': realTags});
+            count++;
+            return nextPicture(req,photos,count,user);
+        });
+    }
+
+    function check(user ){
+        user.save(function(err){
             if(err) {
                 console.dir(err);
             }
-            for(i=0;i<body.photos.total;i++){
-                var rspPhoto=body.photos.photo[i];
-                console.log(rspPhoto);
-                var url='https://farm'+rspPhoto.farm + '.staticflickr.com/'
-                    + rspPhoto.server + '/'+ rspPhoto.id+'_'+rspPhoto.secret
-                    +'.jpg';
-
-                user.photos.push({'url': url, 'tags': ['ceva']});
-            }
-            user.save(function(err, next){
-
-                return check(user);
-            });
         });
     }
 
-    function check(user){
-        console.log(user.photos);
-    }
 
     //----------------------------------------------------------
     //----------------------------------------------------------

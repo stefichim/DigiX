@@ -5,13 +5,6 @@ var bcrypt   = require('bcrypt-nodejs');
 
 // define the schema for our user model
 
-var privateSchema= {
-    flickr: {
-        consumer_key : '3df130b07fe77f78ba318d87fe192c00',
-        consumer_secret: '1d3e72bacff0745c'
-    }
-};
-
 
 var userSchema = mongoose.Schema({
 
@@ -41,37 +34,6 @@ var userSchema = mongoose.Schema({
         url: String,
         tags : [String]
     }]
-
-    /*local            : {
-        username     : String,
-        password     : String,
-        email        : String,
-        first_name   : String,
-        last_name    : String
-    },
-    facebook         : {
-        id           : String,
-        token        : String,
-        email        : String,
-        name         : String
-    },
-    twitter          : {
-        id           : String,
-        token        : String,
-        displayName  : String,
-        username     : String
-    },
-    google           : {
-        id           : String,
-        token        : String,
-        email        : String,
-        name         : String
-    }
-    , flickr : {
-        username: String,
-        token: String,
-        token_secret: String
-    }*/
 
 });
 
