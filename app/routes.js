@@ -86,7 +86,7 @@ module.exports = function(app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
-       
+
                 request.post({url:url, oauth:oauth}, function (e, r, body) {
 
                     var perm_data = qs.parse(body)
@@ -251,7 +251,7 @@ module.exports = function(app, passport) {
                                 if(err){
                                     console.log(err)
                                 }else{
-                                    res.redirect('/profile');}
+                                    res.redirect('/instagram');}
                             });
                         });
                     });
@@ -345,7 +345,8 @@ module.exports = function(app, passport) {
                             ], function() {
                                 my_medias.push({
                                     'url': url,
-                                    'tags': Object.keys(tags)
+                                    'tags': Object.keys(tags),
+                                    'source': 'Instagram'
                                 });
                                 callback();
                             });
@@ -368,6 +369,27 @@ module.exports = function(app, passport) {
 
 
     };
+
+    app.get('/instagram/unsync', isLoggedIn, function(req, res){
+        User.findOne({'username': req.user.username}, function(err,user) {
+            if (err) console.log(err);
+            else{
+                var i;
+                for (i = 0; i < user.photos.length; ++i) {
+                    if (user.photos[i].source === "Instagram") {
+                        user.photos.splice(i--, 1);
+                    }
+                }
+                user.instagram.access_token = undefined;
+                user.save(function(err){
+                    if(err) {
+                        console.dir(err);
+                    }
+                });
+                res.redirect('/instagram');
+            }
+        });
+    });
 
     //----------------------------------------------------------
     //----------------------------------------------------------
@@ -400,8 +422,16 @@ module.exports = function(app, passport) {
     });
 
     app.get('/instagram', isLoggedIn, function(req, res) {
+        var msg = "Sync Instagram";
+        var route = "https://instagram.com/oauth/authorize/?client_id=094ce9a906634c468f99aaa7da117b65&redirect_uri=http://localhost:2080/instagram/code&response_type=code";
+        if (req.user.instagram.access_token != undefined){
+            msg = "Unsync Instagram";
+            route = "/instagram/unsync";
+        }
         res.render('instagram.ejs', {
-            user : req.user
+            user : req.user,
+            msg: msg,
+            route: route
         });
     });
 

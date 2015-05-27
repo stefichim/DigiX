@@ -32,7 +32,8 @@ var userSchema = mongoose.Schema({
     },
     photos : [{
         url: String,
-        tags : [String]
+        tags : [String],
+        source : String
     }]
 
 });
