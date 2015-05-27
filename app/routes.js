@@ -49,6 +49,9 @@ module.exports = function(app, passport) {
     //----------------------------------------------------------
     app.get('/sync/Flickr', isLoggedIn, function(req,res,next){
         var tempUsername=req.user;
+        console.log("pavaloaquis");
+        console.log(tempUsername);
+
         var  oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -71,6 +74,11 @@ module.exports = function(app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
+                console.log("before");
+                console.log(req.query.oauth_token);
+                console.log(req_data.oauth_token_secret);
+                console.log(req.query.oauth_verifier);
+                console.log("after");
                 request.post({url:url, oauth:oauth}, function (e, r, body) {
 
                     var perm_data = qs.parse(body)
@@ -102,6 +110,8 @@ module.exports = function(app, passport) {
     });
 
     function updateFlickrCredentials(req){
+        console.log("update");
+        console.log(req);
 
         User.findOne({'username': req.username}, function(err,user){
             user.flickr.token=req.oauth_token;
@@ -115,6 +125,9 @@ module.exports = function(app, passport) {
     }
 
     function getFlickrPictues(req){
+        console.log("get");
+        console.log(req);
+        var oauth_token,oauth_token_secret;
         User.findOne({username: req.username}, function(err,user){
             if(err) {
                 console.dir(err);
@@ -195,19 +208,41 @@ module.exports = function(app, passport) {
     //----------------------------------------------------------
     //----------------------------------------------------------
 
+
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+    // NORBERT NORBERT NORBERT NORBERT NORBERT NORBERT NORBERT
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+
     app.get('/instagram/code', isLoggedIn, function(req, res) {
         if(req.query && req.query.code){
             var data= {
-                'client_id': '094ce9a906634c468f99aaa7da117b65',
-                'client_secret': 'f697fdd797e042e19f6430294f3d5a1e',
-                'redirect_uri': 'http://localhost:2080/instagram/code',
-                'grant_type': 'authorization_code',
+                'client_id': privateInfo.instagram.client_id,
+                'client_secret': privateInfo.instagram.client_secret,
+                'redirect_uri': privateInfo.instagram.redirect_uri,
+                'grant_type': privateInfo.instagram.grant_type,
                 'code': req.query.code
             }
             request.post(
-                {url:'https://api.instagram.com/oauth/access_token', form: data},
+                {url: privateInfo.instagram.url_get_access_token, form: data},
                 function(err,httpResponse,body){
-                    var instagram_token=JSON.parse(body);
+
+                    var instagram_token = JSON.parse(body);
+                    User.findOne({'username': req.user.username}, function(err,user){
+                        user.instagram.access_token = instagram_token;
+                        user.save(function(err, next){
+                            if (err) console.log(err);
+                            getInstagramPictures(req, res, function(err,result){
+                                if(err){
+                                    console.log(err)
+                                }else{
+                                    res.redirect('/profile');}
+                            });
+                        });
+                    });
+
+                    /*var instagram_token=JSON.parse(body);
                     req.db.collection('users').update(
                         {'_id':req.user['_id']},
                         {"$set":{"instagram":instagram_token}}
@@ -219,10 +254,206 @@ module.exports = function(app, passport) {
                                 }else{
                                     res.redirect('/profile');}
                             });
-                        });
+                        });*/
+
                 });
         }
     });
+
+    function getInstagramPictures(req, res, next) {
+        User.findOne({'username': req.user.username}, function(err,user){
+            if (err) console.log(err);
+            else if (!user.instagram.access_token) console.log('No access token found for INSTAGRAM. Moving on!');
+            else{
+                req.ig.use({
+                    client_id: privateInfo.instagram.client_id,
+                    client_secret: privateInfo.instagram.client_secret
+                });
+                req.ig.use({
+                    'access_token': user.instagram.access_token.access_token
+                });
+                req.ig.user_self_media_recent(function(err, medias, pagination, remaining, limit) {
+                    if (err) {
+                        next(err);
+                    } else {
+                        var my_medias = [];
+                        async.each(medias, function(media, callback) {
+                            var url = media.images.standard_resolution.url;
+                            var tags={}
+                            async.parallel([
+
+                                function(_callback) {
+                                    async.each(media.comments.data, function(comment, _cb) {
+                                        tags[comment.from.username.toLowerCase()]=true;
+                                        var words = comment.from.full_name.split(" ");
+                                        words.forEach(function (element, index, array){
+                                            tags[element.toLowerCase()] = true;
+                                        });
+                                        _cb();
+                                    }, _callback);
+                                },
+                                function(_callback) {
+                                    async.each(media.comments.data, function(comment, _cb) {
+                                        var words = comment.text.split(" ");
+                                        words.forEach(function (element, index, array){
+                                            tags[element.toLowerCase()] = true;
+                                        });
+                                        _cb();
+                                    }, _callback);
+                                },
+                                function(_callback) {
+                                    async.each(media.likes.data, function(like, _cb) {
+                                        tags[like.username]=true;
+                                        var words = like.full_name.split(" ");
+                                        words.forEach(function (element, index, array){
+                                            tags[element.toLowerCase()] = true;
+                                        });
+                                        _cb();
+                                    }, _callback);
+                                },
+                                function(_callback) {
+                                    async.each(media.users_in_photo, function(user, _cb) {
+                                        tags[user.user.username.toLowerCase()]=true;
+                                        var words = user.user.full_name.split(" ");
+                                        words.forEach(function (element, index, array){
+                                            tags[element.toLowerCase()] = true;
+                                        });
+                                        _cb();
+                                    }, _callback);
+                                },
+                                function(_callback) {
+                                    async.each(media.tags, function(tag, _cb) {
+                                        tags[tag.toLowerCase()]=true;
+                                        //tags[tag.toLowerCase()]=true;
+                                        _cb();
+                                    }, _callback);
+                                }
+                            ], function() {
+                                my_medias.push({
+                                    'url': url,
+                                    'tags': Object.keys(tags)
+                                });
+                                callback();
+                            });
+                        }, function() {
+                            user.photos = user.photos.concat(my_medias);
+                            console.log(user.photos);
+                            next(null, null);
+                        });
+                    }
+                });
+            }
+        });
+
+        //req.db.collection('users').findOne({
+        //    '_id': req.user['_id']
+        //}, function(err, result) {
+        //    if (err) {
+        //        console.log(err);
+        //    } if(!result.instagram.access_token){
+        //        console.log("no acesstoken");
+        //        next();
+        //    }else {
+        //        var user=result.local
+        //        req.ig.use({
+        //            client_id: privateInfo.instagram.client_id,
+        //            client_secret: privateInfo.instagram.client_secret
+        //        });
+        //        req.ig.use({
+        //            'access_token': result.instagram.access_token
+        //        });
+        //        req.ig.user_self_media_recent(function(err, medias, pagination, remaining, limit) {
+        //            if (err) {
+        //                next(err);
+        //            } else {
+        //                //console.dir(medias);
+        //                var my_medias = [];
+        //                async.each(medias, function(media, callback) {
+        //                    var url = media.images.standard_resolution.url;
+        //                    // var tags = media.tags;
+        //                    var tags={}
+        //                    async.parallel([
+        //
+        //                        function(_callback) {
+        //                            async.each(media.comments.data, function(comment, _cb) {
+        //                                tags[comment.from.username]=true;
+        //                                var words = comment.from.full_name.split(" ");
+        //                                words.forEach(function (element, index, array){
+        //                                    tags[element] = true;
+        //                                });
+        //                                //tags[comment.from.full_name]=true;
+        //                                _cb();
+        //                            }, _callback);
+        //                        },
+        //                        function(_callback) {
+        //                            async.each(media.comments.data, function(comment, _cb) {
+        //                                var words = comment.text.split(" ");
+        //                                words.forEach(function (element, index, array){
+        //                                    tags[element] = true;
+        //                                });
+        //                                _cb();
+        //                            }, _callback);
+        //                        },
+        //                        //aici se termina incercarea
+        //                        function(_callback) {
+        //                            async.each(media.likes.data, function(like, _cb) {
+        //                                tags[like.username]=true;
+        //                                var words = like.full_name.split(" ");
+        //                                words.forEach(function (element, index, array){
+        //                                    tags[element] = true;
+        //                                });
+        //                                //tags[like.full_name]=true;
+        //                                _cb();
+        //                            }, _callback);
+        //                        },
+        //                        function(_callback) {
+        //                            async.each(media.users_in_photo, function(user, _cb) {
+        //                                tags[user.user.username]=true;
+        //                                var words = user.user.full_name.split(" ");
+        //                                words.forEach(function (element, index, array){
+        //                                    tags[element] = true;
+        //                                });
+        //                                //tags[user.user.full_name]=true;
+        //                                _cb();
+        //                            }, _callback);
+        //                        },
+        //                        function(_callback) {
+        //                            async.each(media.tags, function(tag, _cb) {
+        //                                tags[tag]=true;
+        //                                tags[tag]=true;
+        //                                _cb();
+        //                            }, _callback);
+        //                        }
+        //                    ], function() {
+        //                        my_medias.push({
+        //                            'url': url,
+        //                            'tags': Object.keys(tags)
+        //                        });
+        //                        console.dir(my_medias);
+        //                        callback();
+        //                    });
+        //                }, function() {
+        //                    //console.log(user.username);
+        //                    req.db.collection(user.username).insert(my_medias,function(err,res){
+        //                        if(err){
+        //                            next(err);
+        //                        }else{
+        //                            next(null,null)
+        //                        }
+        //                    })
+        //                });
+        //            }
+        //        });
+        //
+        //    }
+        //});
+    };
+
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+    // NORBERT NORBERT NORBERT NORBERT NORBERT NORBERT NORBERT
+    //----------------------------------------------------------
+    //----------------------------------------------------------
 
     app.get('/edit_profile', isLoggedIn, function(req, res) {
         res.render('edit_profile', {
@@ -285,108 +516,3 @@ function isLoggedIn(req, res, next) {
 
     res.redirect('/');
 }
-
-function getInstagramPictures(req, res, next) {
-    req.db.collection('users').findOne({
-        '_id': req.user['_id']
-    }, function(err, result) {
-        if (err) {
-            console.log(err);
-        } if(!result.instagram.access_token){
-            console.log("no acesstoken");
-            next();
-        }else {
-            var user=result.local
-            req.ig.use({
-                client_id: '094ce9a906634c468f99aaa7da117b65',
-                client_secret: 'f697fdd797e042e19f6430294f3d5a1e'
-            });
-            req.ig.use({
-                'access_token': result.instagram.access_token
-            });
-            req.ig.user_self_media_recent(function(err, medias, pagination, remaining, limit) {
-                if (err) {
-                    next(err);
-                } else {
-                    //console.dir(medias);
-                    var my_medias = [];
-                    async.each(medias, function(media, callback) {
-                        var url = media.images.standard_resolution.url;
-                        // var tags = media.tags;
-                        var tags={}
-                        async.parallel([
-
-                            function(_callback) {
-                                async.each(media.comments.data, function(comment, _cb) {
-                                    tags[comment.from.username]=true;
-                                    var words = comment.from.full_name.split(" ");
-                                    words.forEach(function (element, index, array){
-                                        tags[element] = true;
-                                    });
-                                    //tags[comment.from.full_name]=true;
-                                    _cb();
-                                }, _callback);
-                            },
-                            function(_callback) {
-                                async.each(media.comments.data, function(comment, _cb) {
-                                    var words = comment.text.split(" ");
-                                    words.forEach(function (element, index, array){
-                                        tags[element] = true;
-                                    });
-                                    _cb();
-                                }, _callback);
-                            },
-                            //aici se termina incercarea
-                            function(_callback) {
-                                async.each(media.likes.data, function(like, _cb) {
-                                    tags[like.username]=true;
-                                    var words = like.full_name.split(" ");
-                                    words.forEach(function (element, index, array){
-                                        tags[element] = true;
-                                    });
-                                    //tags[like.full_name]=true;
-                                    _cb();
-                                }, _callback);
-                            },
-                            function(_callback) {
-                                async.each(media.users_in_photo, function(user, _cb) {
-                                    tags[user.user.username]=true;
-                                    var words = user.user.full_name.split(" ");
-                                    words.forEach(function (element, index, array){
-                                        tags[element] = true;
-                                    });
-                                    //tags[user.user.full_name]=true;
-                                    _cb();
-                                }, _callback);
-                            },
-                            function(_callback) {
-                                async.each(media.tags, function(tag, _cb) {
-                                    tags[tag]=true;
-                                    tags[tag]=true;
-                                    _cb();
-                                }, _callback);
-                            }
-                        ], function() {
-                            my_medias.push({
-                                'url': url,
-                                'tags': Object.keys(tags)
-                            });
-                            console.dir(my_medias);
-                            callback();
-                        });
-                    }, function() {
-                        console.log(user.username);
-                        req.db.collection(user.username).insert(my_medias,function(err,res){
-                            if(err){
-                                next(err);
-                            }else{
-                                next(null,null)
-                            }
-                        })
-                    });
-                }
-            });
-
-        }
-    });
-};

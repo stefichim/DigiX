@@ -23,8 +23,7 @@ var userSchema = mongoose.Schema({
         token_secret: String
     },
     instagram: {
-        token: String,
-        token_secret : String
+        access_token: Object
     },
     google :{
         token: String,
