@@ -1,11 +1,12 @@
 // app/routes.js
 var request         =require('../node_modules/request/index.js');
 // load up the user model
-var mongoose = require('mongoose');
+var mongoose        = require('mongoose');
 var User            = require('../app/models/user');
+var muci =  require('../app/models/user.js');
 var async           = require('../node_modules/async');
-var privateInfo= require('../app/models/private');
-var qs = require('querystring');
+var privateInfo     = require('../app/models/private');
+var qs              = require('querystring');
 
 module.exports = function(app, passport) {
     app.get('/', function(req, res) {
@@ -25,19 +26,34 @@ module.exports = function(app, passport) {
     }));
 
     app.get('/profile', isLoggedIn, function(req, res) {
-        req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
-            if (err){
-                res.send("Error");
+        User.findOne({'username': req.user.username}, function(err,user){
+            if (err) console.log(err);
+            else{
+                var my_pictures = [];
+                user.photos.forEach(function (photo){
+                    my_pictures.push(photo.url);
+                });
+                res.render('profile', {
+                    user : user,
+                    photos: my_pictures
+                });
             }
-            else {
-                cursor.toArray(function(err,result){
-                    res.render('profile', {
-                        user : req.user,
-                        photos:result
-                    });
-                })
-            }
-        })
+        });
+
+
+        //req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
+        //    if (err){
+        //        res.send("Error");
+        //    }
+        //    else {
+        //        cursor.toArray(function(err,result){
+        //            res.render('profile', {
+        //                user : req.user,
+        //                photos:result
+        //            });
+        //        })
+        //    }
+        //})
 
     });
 
@@ -46,6 +62,7 @@ module.exports = function(app, passport) {
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
     //----------------------------------------------------------
     //----------------------------------------------------------
+
 
     app.get('/sync/Flickr', isLoggedIn, function(req,res){
         var  oauth = {
@@ -69,11 +86,19 @@ module.exports = function(app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
+       
                 request.post({url:url, oauth:oauth}, function (e, r, body) {
 
-                    var perm_data = qs.parse(body);
-                    var credentials = {
-                        username: req.user.username,
+                    var perm_data = qs.parse(body)
+                        , oauth =
+                        { consumer_key: privateInfo.flickr.consumer_key
+                            , consumer_secret: privateInfo.flickr.consumer_secret
+                            , token: perm_data.oauth_token
+                            , token_secret: perm_data.oauth_token_secret
+                        };
+
+                    var req = {
+                        username: tempUsername.username,
                         oauth_token: perm_data.oauth_token,
                         oauth_token_secret: perm_data.oauth_token_secret,
                         nsid: perm_data.user_nsid
@@ -81,6 +106,8 @@ module.exports = function(app, passport) {
                     updateFlickrCredentials(credentials,res);
 
                 });
+
+
             });
 
         });
@@ -180,7 +207,13 @@ module.exports = function(app, passport) {
         });
     }
 
-
+    function check(user ){
+        user.save(function(err){
+            if(err) {
+                console.dir(err);
+            }
+        });
+    }
 
 
     //----------------------------------------------------------
@@ -317,8 +350,15 @@ module.exports = function(app, passport) {
                                 callback();
                             });
                         }, function() {
-                            user.photos = user.photos.concat(my_medias);
-                            console.log(user.photos);
+                            //user.photos = user.photos.concat(my_medias);
+                            //a.push.apply(a, b)
+                            user.photos.push.apply(user.photos, my_medias);
+                            //console.log(user.photos);
+                            user.save(function(err){
+                                if(err) {
+                                    console.dir(err);
+                                }
+                            });
                             next(null, null);
                         });
                     }
