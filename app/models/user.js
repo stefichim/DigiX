@@ -15,6 +15,7 @@ var userSchema = mongoose.Schema({
     last_name: String,
 
     flickr : {
+        nsid : String,
         token : String,
         token_secret: String
     },

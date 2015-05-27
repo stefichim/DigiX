@@ -13,6 +13,7 @@
 
 		<script src="include/jquery/jquery-1.11.2.min.js"></script>
 		<script src="include/bootstrap/js/bootstrap.min.js"></script>
+		<script src="javascripts/flickrJS.js"></script>
 		<link rel="stylesheet" type="text/css" href="stylesheets/flickr/default.css" />
 		<link rel="stylesheet" type="text/css" href="stylesheets/flickr/component.css" />
 
@@ -36,12 +37,6 @@
     				</ul>
 				</div>
 
-				<!-- <form action="" class="navbar-form navbar-right" role="search">
-					<div class="form-group">
-						<input type="text" class="form-control" placeholder="Search text">
-					</div>
-					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
-				</form> -->
 			</div>
 		</div>
 	</header>
@@ -59,7 +54,7 @@
 					<p>Are you the pround owner of a Flicr account? How about showcasing all your work from here. Just login and review your proudest photos.</p>
 				</div>
 				<div class="column">
-					<a href="/sync/Flickr"><button href="/syncFlickr">Sync Flickr</button></a>
+					<a href=<%=link%>><button><%=msg%></button></a>
 				</div>
 			</div>
 		</div><!-- /container -->
@@ -79,5 +74,6 @@
 			var polyfilter_scriptpath = '/js/';
 		</script>
 		<script src="javascripts/css-filters-polyfill.js"></script>
+
 	</body>
 </html>

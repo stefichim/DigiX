@@ -3,7 +3,6 @@ var request         =require('../node_modules/request/index.js');
 // load up the user model
 var mongoose = require('mongoose');
 var User            = require('../app/models/user');
-var muci =  require('../app/models/user.js');
 var async           = require('../node_modules/async');
 var privateInfo= require('../app/models/private');
 var qs = require('querystring');
@@ -47,11 +46,8 @@ module.exports = function(app, passport) {
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
     //----------------------------------------------------------
     //----------------------------------------------------------
-    app.get('/sync/Flickr', isLoggedIn, function(req,res,next){
-        var tempUsername=req.user;
-        console.log("pavaloaquis");
-        console.log(tempUsername);
 
+    app.get('/sync/Flickr', isLoggedIn, function(req,res){
         var  oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -59,7 +55,6 @@ module.exports = function(app, passport) {
             , url = 'https://www.flickr.com/services/oauth/request_token';
 
         request.post({url:url, oauth:oauth}, function(e,r,body){
-
             var req_data=qs.parse(body);
             var uri='https://www.flickr.com/services/oauth/authorize' + '?'+
                 qs.stringify({oauth_token:req_data.oauth_token});
@@ -74,61 +69,43 @@ module.exports = function(app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
-                console.log("before");
-                console.log(req.query.oauth_token);
-                console.log(req_data.oauth_token_secret);
-                console.log(req.query.oauth_verifier);
-                console.log("after");
                 request.post({url:url, oauth:oauth}, function (e, r, body) {
 
-                    var perm_data = qs.parse(body)
-                        , oauth =
-                        { consumer_key: privateInfo.flickr.consumer_key
-                            , consumer_secret: privateInfo.flickr.consumer_secret
-                            , token: perm_data.oauth_token
-                            , token_secret: perm_data.oauth_token_secret
-                        };
-
-                    var req = {
-                        username: tempUsername.username,
+                    var perm_data = qs.parse(body);
+                    var credentials = {
+                        username: req.user.username,
                         oauth_token: perm_data.oauth_token,
                         oauth_token_secret: perm_data.oauth_token_secret,
                         nsid: perm_data.user_nsid
                     };
-                    console.log("nsid");
-                    console.log(req.nsid);
-                    updateFlickrCredentials(req);
-                    res.redirect('/profile');
+                    updateFlickrCredentials(credentials,res);
 
                 });
-
-
             });
 
         });
 
     });
 
-    function updateFlickrCredentials(req){
-        console.log("update");
-        console.log(req);
+    function updateFlickrCredentials(credentials, next){
 
-        User.findOne({'username': req.username}, function(err,user){
-            user.flickr.token=req.oauth_token;
-            user.flickr.token_secret=req.oauth_token_secret;
-            user.save(function(err, next){
-                console.log(err);
-                return getFlickrPictues(req);
+
+        User.findOne({'username': credentials.username}, function(err,user){
+            user.flickr.token=credentials.oauth_token;
+            user.flickr.token_secret=credentials.oauth_token_secret;
+            user.flickr.nsid=credentials.nsid;
+            user.save(function(err){
+                if(err) console.dir(err);
+                else next.redirect('/flickr/get/photos/?username='+credentials.username);
             });
         });
 
     }
 
-    function getFlickrPictues(req){
-        console.log("get");
-        console.log(req);
-        var oauth_token,oauth_token_secret;
-        User.findOne({username: req.username}, function(err,user){
+
+    app.get('/flickr/get/photos', function(req,res){
+
+        User.findOne({username: req.query.username}, function(err,user){
             if(err) {
                 console.dir(err);
                 return;
@@ -138,44 +115,55 @@ module.exports = function(app, passport) {
                 , consumer_secret: privateInfo.flickr.consumer_secret
                 , token: user.flickr.token
                 , token_secret: user.flickr.token_secret
-            };
-            var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.people.getPhotos'+
-                '&'+'user_id='+ req.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
+            },url='https://api.flickr.com/services/rest'+'?'+'method=flickr.people.getPhotos'+
+                '&'+'user_id='+ user.flickr.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
+
             request.get({url:url, oauth:oauth}, function(e,r,body){
                 if(e) {
                     console.dir(e);
                     return;
                 }
-                return insertDatabase(req,JSON.parse(body));
+                insertDatabase(req.query.username,JSON.parse(body),res);
             });
         });
-    }
+    });
 
 
-    function insertDatabase(req,body){
+    function insertDatabase(username,body,next){
         var count=0;
-        User.findOne({username: req.username}, function(err,user) {
+        User.findOne({username: username}, function(err,user) {
             if (err) {
                 console.dir(err);
                 return;
             }
-            return nextPicture(req,body,count,user);
+            var data={
+                username: username,
+                body: body,
+                count:count,
+                user: user
+            }
+            nextPicture(data, next);
         });
 
     }
-    function nextPicture(req,photos,count,user, res){
-        var total=photos.photos.total;
-        if(count==total) return check(user);
-        var rspPhoto=photos.photos.photo[count];
+    function nextPicture(data,next){
+        var total=data.body.photos.total;
+        if(data.count==total) {
+            data.user.save(function(err){
+                if(err) return;
+            })
+            return next.redirect('/flickr');
+        }
+        var rspPhoto=data.body.photos.photo[data.count];
+
         var photoUrl='https://farm'+rspPhoto.farm + '.staticflickr.com/'
             + rspPhoto.server + '/'+ rspPhoto.id+'_'+rspPhoto.secret
             +'.jpg';
         var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.tags.getListPhoto'+
                 '&'+'photo_id='+ rspPhoto.id + '&format=json&nojsoncallback=1'
-            , oauth = {
+            ,oauth = {
                 consumer_key: privateInfo.flickr.consumer_key
-                ,consumer_secret: privateInfo.flickr.consumer_secret
-            };
+                ,consumer_secret: privateInfo.flickr.consumer_secret};
         request.get({url:url, oauth:oauth}, function(e,r,body){
             if(e) {
                 console.dir(e);
@@ -186,20 +174,13 @@ module.exports = function(app, passport) {
             for(j=0;j<tags.photo.tags.tag.length;j++){
                 realTags.push(tags.photo.tags.tag[j].raw);
             }
-            console.log(realTags);
-            user.photos.push({'url': photoUrl, 'tags': realTags});
-            count++;
-            return nextPicture(req,photos,count,user);
+            data.user.photos.push({'url': photoUrl, 'tags': realTags});
+            data.count++;
+            nextPicture(data,next);
         });
     }
 
-    function check(user ){
-        user.save(function(err){
-            if(err) {
-                console.dir(err);
-            }
-        });
-    }
+
 
 
     //----------------------------------------------------------
@@ -345,108 +326,7 @@ module.exports = function(app, passport) {
             }
         });
 
-        //req.db.collection('users').findOne({
-        //    '_id': req.user['_id']
-        //}, function(err, result) {
-        //    if (err) {
-        //        console.log(err);
-        //    } if(!result.instagram.access_token){
-        //        console.log("no acesstoken");
-        //        next();
-        //    }else {
-        //        var user=result.local
-        //        req.ig.use({
-        //            client_id: privateInfo.instagram.client_id,
-        //            client_secret: privateInfo.instagram.client_secret
-        //        });
-        //        req.ig.use({
-        //            'access_token': result.instagram.access_token
-        //        });
-        //        req.ig.user_self_media_recent(function(err, medias, pagination, remaining, limit) {
-        //            if (err) {
-        //                next(err);
-        //            } else {
-        //                //console.dir(medias);
-        //                var my_medias = [];
-        //                async.each(medias, function(media, callback) {
-        //                    var url = media.images.standard_resolution.url;
-        //                    // var tags = media.tags;
-        //                    var tags={}
-        //                    async.parallel([
-        //
-        //                        function(_callback) {
-        //                            async.each(media.comments.data, function(comment, _cb) {
-        //                                tags[comment.from.username]=true;
-        //                                var words = comment.from.full_name.split(" ");
-        //                                words.forEach(function (element, index, array){
-        //                                    tags[element] = true;
-        //                                });
-        //                                //tags[comment.from.full_name]=true;
-        //                                _cb();
-        //                            }, _callback);
-        //                        },
-        //                        function(_callback) {
-        //                            async.each(media.comments.data, function(comment, _cb) {
-        //                                var words = comment.text.split(" ");
-        //                                words.forEach(function (element, index, array){
-        //                                    tags[element] = true;
-        //                                });
-        //                                _cb();
-        //                            }, _callback);
-        //                        },
-        //                        //aici se termina incercarea
-        //                        function(_callback) {
-        //                            async.each(media.likes.data, function(like, _cb) {
-        //                                tags[like.username]=true;
-        //                                var words = like.full_name.split(" ");
-        //                                words.forEach(function (element, index, array){
-        //                                    tags[element] = true;
-        //                                });
-        //                                //tags[like.full_name]=true;
-        //                                _cb();
-        //                            }, _callback);
-        //                        },
-        //                        function(_callback) {
-        //                            async.each(media.users_in_photo, function(user, _cb) {
-        //                                tags[user.user.username]=true;
-        //                                var words = user.user.full_name.split(" ");
-        //                                words.forEach(function (element, index, array){
-        //                                    tags[element] = true;
-        //                                });
-        //                                //tags[user.user.full_name]=true;
-        //                                _cb();
-        //                            }, _callback);
-        //                        },
-        //                        function(_callback) {
-        //                            async.each(media.tags, function(tag, _cb) {
-        //                                tags[tag]=true;
-        //                                tags[tag]=true;
-        //                                _cb();
-        //                            }, _callback);
-        //                        }
-        //                    ], function() {
-        //                        my_medias.push({
-        //                            'url': url,
-        //                            'tags': Object.keys(tags)
-        //                        });
-        //                        console.dir(my_medias);
-        //                        callback();
-        //                    });
-        //                }, function() {
-        //                    //console.log(user.username);
-        //                    req.db.collection(user.username).insert(my_medias,function(err,res){
-        //                        if(err){
-        //                            next(err);
-        //                        }else{
-        //                            next(null,null)
-        //                        }
-        //                    })
-        //                });
-        //            }
-        //        });
-        //
-        //    }
-        //});
+
     };
 
     //----------------------------------------------------------
@@ -486,8 +366,16 @@ module.exports = function(app, passport) {
     });
 
     app.get('/flickr', isLoggedIn, function(req, res) {
+        var msg="Sync Flickr";
+        var link="/sync/Flickr";
+        if(req.user.flickr.nsid!=undefined) {
+            msg = "Unsync Flickr";
+            link="/unsync/Flickr";
+        }
         res.render('flickr.ejs', {
-            user : req.user
+            user : req.user,
+            msg: msg,
+            link: link
         });
     });
 
