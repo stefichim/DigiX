@@ -13,7 +13,7 @@ var userSchema = mongoose.Schema({
     email : String,
     first_name: String,
     last_name: String,
-
+    current_picture_index: String,
     flickr : {
         nsid : String,
         token : String,

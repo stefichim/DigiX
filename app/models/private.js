@@ -2,6 +2,9 @@
  * Created by Pava on 5/25/2015.
  */
 module.exports={
+    profile :{
+        numberOfPicturesPage: 9
+    },
     flickr : {
         consumer_key: '3df130b07fe77f78ba318d87fe192c00',
         consumer_secret: '1d3e72bacff0745c'

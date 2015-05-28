@@ -29,13 +29,37 @@ module.exports = function(app, passport) {
         User.findOne({'username': req.user.username}, function(err,user){
             if (err) console.log(err);
             else{
+
+                console.log(user.photos.length);
+
                 var my_pictures = [];
-                user.photos.forEach(function (photo){
-                    my_pictures.push(photo.url);
+                var previousButtonVisible = 'visible';
+                var nextButtonVisible = 'visible';
+
+                var i;
+                for (i = parseInt(user.current_picture_index) + 1; i < user.photos.length && i <= (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++){
+                    my_pictures.push(user.photos[i].url);
+                }
+
+                user.current_picture_index = parseInt(user.current_picture_index) + my_pictures.length;
+                user.save(function(err){
+                    if(err) {
+                        console.dir(err);
+                    }
                 });
+
+                if (parseInt(user.current_picture_index) < privateInfo.profile.numberOfPicturesPage){
+                    previousButtonVisible = 'invisible';
+                }
+                if (parseInt(user.current_picture_index) >= (user.photos.length - 1)){
+                    nextButtonVisible = 'invisible';
+                }
+
                 res.render('profile', {
                     user : user,
-                    photos: my_pictures
+                    photos: my_pictures,
+                    previousButtonVisible: previousButtonVisible,
+                    nextButtonVisible: nextButtonVisible
                 });
             }
         });
@@ -55,6 +79,40 @@ module.exports = function(app, passport) {
         //    }
         //})
 
+    });
+
+    app.get('/profile/next', isLoggedIn, function(req, res){
+        res.redirect('/profile');
+    });
+
+    app.get('/profile/previous', isLoggedIn, function(req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            if ((parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
+                user.current_picture_index = parseInt(user.current_picture_index) - (parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage;
+                user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            } else {
+                user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+                user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            }
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/profile');
+        });
+    });
+
+    app.get('/profile/button', isLoggedIn, function (req, res){
+        User.findOne({'username': req.user.username}, function (err, user) {
+            user.current_picture_index = -1;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/profile');
+        });
     });
 
     //----------------------------------------------------------
