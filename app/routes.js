@@ -29,9 +29,6 @@ module.exports = function(app, passport) {
         User.findOne({'username': req.user.username}, function(err,user){
             if (err) console.log(err);
             else{
-
-                console.log(user.photos.length);
-
                 var my_pictures = [];
                 var previousButtonVisible = 'visible';
                 var nextButtonVisible = 'visible';
@@ -513,6 +510,7 @@ module.exports = function(app, passport) {
     });
 
     app.get('/photos',isLoggedIn, function(req, res){
+        console.log("alohaa");
         req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
             if (err){
                 res.send("Error");
