@@ -1,5 +1,5 @@
 // app/routes.js
-var request         =require('../node_modules/request/index.js');
+var request = require('../node_modules/request/index.js');
 // load up the user model
 var mongoose = require('mongoose');
 var User = require('../app/models/user');
@@ -578,12 +578,6 @@ module.exports = function (app, passport) {
         failureFlash: true
     }));
 
-    app.get('/google', isLoggedIn, function (req, res) {
-        res.render('google+.ejs', {
-            user: req.user
-        });
-    });
-
     app.get('/instagram', isLoggedIn, function (req, res) {
         var msg = "Sync Instagram";
         var route = "https://instagram.com/oauth/authorize/?client_id=094ce9a906634c468f99aaa7da117b65&redirect_uri=http://localhost:2080/instagram/code&response_type=code";
@@ -630,37 +624,79 @@ module.exports = function (app, passport) {
     //        }
     //    })
     //})
-
-    app.get('/auth/google', isLoggedIn, passport.authenticate('google', {scope: ['https://picasaweb.google.com/data/', 'profile', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.me']}));
-
-    // the callback after google has authenticated the user
-    app.get('/auth/google/callback', passport.authenticate('google', {
-            successRedirect: '/profile',
-            failureRedirect: '/'
-        }));
-
-    /* Facebook - Tudor */
-    app.get('/facebook', isLoggedIn, function(req, res) {
-        var message = "Sync Facebook Photos";
-        var route = "/auth/facebook";
-        if (req.user.facebook.token != undefined){
-            message = "Unsync Facebook Photos";
-            route = "/deauth/facebook";
+    app.get('/google', isLoggedIn, function (req, res) {
+        var message = "Sync Google+";
+        var route = "/auth/google";
+        if (req.user.google.user_id != undefined) {
+            message = "Unsync Google+";
+            route = "/deauth/google";
         }
-        res.render('facebook.ejs', {
-            user : req.user,
+        res.render('google+.ejs', {
+            user: req.user,
             message: message,
             route: route
         });
     });
 
-    app.get('/auth/facebook', passport.authenticate('facebook', { scope :['user_photos'] } ));
+    app.get('/auth/google', isLoggedIn, passport.authenticate('google', {scope: ['https://picasaweb.google.com/data/', 'profile', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.me']}));
 
-    app.get('/auth/facebook/callback', passport.authenticate('facebook', {successRedirect : '/profile', failureRedirect : '/logout'}));
+    // the callback after google has authenticated the user
+    app.get('/auth/google/callback', passport.authenticate('google', {
+        successRedirect: '/profile',
+        failureRedirect: '/'
+    }));
 
-    app.get('/deauth/facebook', isLoggedIn, function(req, res) {
+    app.get('/deauth/google', isLoggedIn, function (req, res) {
 
-        User.findOne({'username' : req.user.username }, function(err, user) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            // if there are any errors, return the error before anything else
+            if (err || !user)
+                return done(err);
+
+            user.google.user_id = undefined;
+            user.google.access_token = undefined;
+
+            for (var i = user.photos.length - 1; i >= 0; i--) {
+                if (user.photos[i].source == 'google') {
+                    user.photos.splice(i, 1);
+                }
+            }
+
+            user.save(function (err) {
+                if (err) {
+                    return done(null, user);
+                }
+            });
+        });
+
+        res.redirect('/google');
+    });
+
+    /* Facebook - Tudor */
+    app.get('/facebook', isLoggedIn, function (req, res) {
+        var message = "Sync Facebook";
+        var route = "/auth/facebook";
+        if (req.user.facebook.token != undefined) {
+            message = "Unsync Facebook";
+            route = "/deauth/facebook";
+        }
+        res.render('facebook.ejs', {
+            user: req.user,
+            message: message,
+            route: route
+        });
+    });
+
+    app.get('/auth/facebook', passport.authenticate('facebook', {scope: ['user_photos']}));
+
+    app.get('/auth/facebook/callback', passport.authenticate('facebook', {
+        successRedirect: '/profile',
+        failureRedirect: '/logout'
+    }));
+
+    app.get('/deauth/facebook', isLoggedIn, function (req, res) {
+
+        User.findOne({'username': req.user.username}, function (err, user) {
             // if there are any errors, return the error before anything else
             if (err || !user)
                 return done(err);
@@ -673,8 +709,8 @@ module.exports = function (app, passport) {
                 }
             }
 
-            user.save(function(err){
-                if(err) {
+            user.save(function (err) {
+                if (err) {
                     return done(null, user);
                 }
             });
