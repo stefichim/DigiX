@@ -275,6 +275,4 @@ module.exports = function (passport) {
                     ;
                 });
 
-            })
-    );
-};
+            }));
