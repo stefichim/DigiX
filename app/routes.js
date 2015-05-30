@@ -112,6 +112,114 @@ module.exports = function(app, passport) {
         });
     });
 
+    app.get('/search_photos_button', isLoggedIn, function(req, res){
+        User.findOne({'username': req.user.username}, function(err,user){
+            user.current_picture_search_index = -1;
+            user.searched_photos.length = 0;
+
+            var queryString = req.query.searched_text;
+            if (queryString.length == 0) {
+                user.current_picture_index = -1;
+                user.save(function(err){
+                    if(err) {
+                        console.dir(err);
+                    }
+                });
+                res.redirect('/profile');
+            }
+            else {
+                var words = queryString.toLowerCase().split(" ");
+
+                var i;
+                for (i = 0; i < user.photos.length; i++) {
+                    var tags = user.photos[i].tags.filter(function (n) {
+                        return words.indexOf(n) != -1
+                    });
+                    var photo = {
+                        url: user.photos[i].url,
+                        score: tags.length
+                    }
+
+                    user.searched_photos.push(photo);
+                }
+
+                user.searched_photos.sort(function (a, b) {
+                    return parseFloat(b.score) - parseFloat(a.score)
+                });
+
+                user.save(function (err) {
+                    if (err) {
+                        console.dir(err);
+                    }
+                });
+                res.redirect('/search_photos');
+            }
+        });
+    });
+
+    app.get('/search_photos', isLoggedIn, function (req, res){
+        User.findOne({'username': req.user.username}, function(err,user) {
+            var my_pictures = [];
+            var previousButtonVisible = 'visible';
+            var nextButtonVisible = 'visible';
+
+            var i;
+            for (i = parseInt(user.current_picture_search_index) + 1; i < user.searched_photos.length && i <= (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage); i++) {
+                my_pictures.push(user.searched_photos[i].url);
+            }
+
+            user.current_picture_search_index = parseInt(user.current_picture_search_index) + my_pictures.length;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+
+            if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
+                previousButtonVisible = 'invisible';
+            }
+            if (parseInt(user.current_picture_search_index) >= (user.searched_photos.length - 1)) {
+                nextButtonVisible = 'invisible';
+            }
+
+            res.render('search_photos', {
+                user: user,
+                photos: my_pictures,
+                previousButtonVisible: previousButtonVisible,
+                nextButtonVisible: nextButtonVisible
+            });
+        });
+    });
+
+    app.get('/search_photos/next', isLoggedIn, function (req, res){
+        User.findOne({'username': req.user.username}, function(err,user){
+            res.redirect('/search_photos');
+        });
+    });
+
+    app.get('/search_photos/previous', isLoggedIn, function (req, res){
+        User.findOne({'username': req.user.username}, function(err,user){
+            var my_pictures = [];
+            var previousButtonVisible = 'visible';
+            var nextButtonVisible = 'visible';
+
+            if ((parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
+                user.current_picture_search_index = parseInt(user.current_picture_search_index) - (parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage;
+                user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+            } else {
+                user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+                user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+            }
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+
+            res.redirect('/search_photos');
+        });
+    });
+
     //----------------------------------------------------------
     //----------------------------------------------------------
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
@@ -509,19 +617,19 @@ module.exports = function(app, passport) {
         res.redirect('/');
     });
 
-    app.get('/photos',isLoggedIn, function(req, res){
-        console.log("alohaa");
-        req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
-            if (err){
-                res.send("Error");
-            }
-            else {
-                cursor.toArray(function(err,result){
-                    res.send(result);
-                })
-            }
-        })
-    })
+    //app.get('/photos',isLoggedIn, function(req, res){
+    //    console.log("alohaa");
+    //    req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
+    //        if (err){
+    //            res.send("Error");
+    //        }
+    //        else {
+    //            cursor.toArray(function(err,result){
+    //                res.send(result);
+    //            })
+    //        }
+    //    })
+    //})
 };
 
 function isLoggedIn(req, res, next) {

@@ -14,6 +14,7 @@ var userSchema = mongoose.Schema({
     first_name: String,
     last_name: String,
     current_picture_index: String,
+    current_picture_search_index: String,
     flickr : {
         nsid : String,
         token : String,
@@ -34,8 +35,11 @@ var userSchema = mongoose.Schema({
         url: String,
         tags : [String],
         source : String
+    }],
+    searched_photos : [{
+        url: String,
+        score: Number
     }]
-
 });
 
 // methods ======================
