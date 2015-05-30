@@ -2,9 +2,14 @@
 
 // load all the things we need
 var LocalStrategy   = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
 
 // load up the user model
 var User            = require('../app/models/user');
+
+var configAuth = require('./auth');
+
+var http = require("https");
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {
@@ -29,7 +34,6 @@ module.exports = function(passport) {
             // asynchronous
             // User.findOne wont fire unless data is sent back
             process.nextTick(function() {
-
                 // find a user whose email is the same as the forms email
                 // we are checking to see if the user trying to login already exists
                 User.findOne({ 'local.username' : username}, function(err, user) {
@@ -106,5 +110,75 @@ module.exports = function(passport) {
                 return done(null, user);
             });
 
+        }));
+
+    passport.use(new FacebookStrategy({
+            clientID        : configAuth.facebookAuth.clientID,
+            clientSecret    : configAuth.facebookAuth.clientSecret,
+            callbackURL     : configAuth.facebookAuth.callbackURL,
+            profileFields   : ['id'],
+            passReqToCallback: true
+        },
+        function(req, token, refreshToken, profile, done) {
+                User.findOne({ 'username' : req.user.username }, function(err, user) {
+                    if (err || !user)
+                        return done(err);
+
+                    user.facebook.token = token;
+
+                    var url = 'https://graph.facebook.com/' + profile.id + '/albums?access_token=' + token;
+                    console.log(url);
+
+                    http.get(url, function(res) {
+                        var body = '';
+
+                        res.on('data', function(chunk) {
+                            body += chunk;
+                        });
+
+                        res.on('end', function() {
+                            var albums = JSON.parse(body)['data'];
+                            for (var album_index = 0; album_index < albums.length; album_index++) {
+                                var photo_url = 'https://graph.facebook.com/' + albums[album_index].id + '/photos?access_token=' + token;
+                                console.dir(photo_url);
+
+                                http.get(photo_url, function(res) {
+                                    var body = '';
+
+                                    res.on('data', function(chunk) {
+                                        body += chunk;
+                                    });
+
+                                    res.on('end', function() {
+                                        var photos = JSON.parse(body)['data'];
+
+                                        for (var photo_index = 0; photo_index < photos.length; photo_index++) {
+                                            console.dir(photos[photo_index].source);
+
+                                            user.photos.push({'url': photos[photo_index].source, 'tags': ["facebook"], 'source': 'Facebook'});
+                                            user.save(function(err){
+                                                if(err) {
+                                                    console.dir(err);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }).on('error', function(e) {
+                                    console.log("Got error: ", e);
+                                });
+                            }
+                        });
+                    }).on('error', function(e) {
+                        console.log("Got error: ", e);
+                    });
+
+                    user.save(function(err){
+                        if(err) {
+                            console.dir(err);
+                        }
+                    });
+                });
+
+            return done(null, req.user);
         }));
 };

@@ -1,5 +1,5 @@
 // app/routes.js
-var request         =require('../node_modules/request/index.js');
+var request         = require('../node_modules/request/index.js');
 // load up the user model
 var mongoose        = require('mongoose');
 var User            = require('../app/models/user');
@@ -464,12 +464,6 @@ module.exports = function(app, passport) {
         failureFlash : true
     }));
 
-    app.get('/facebook', isLoggedIn, function(req, res) {
-        res.render('facebook.ejs', {
-            user : req.user
-        });
-    });
-
     app.get('/google', isLoggedIn, function(req, res) {
         res.render('google+.ejs', {
             user : req.user
@@ -522,6 +516,44 @@ module.exports = function(app, passport) {
             }
         })
     })
+
+    /* Facebook - Tudor */
+    app.get('/facebook', isLoggedIn, function(req, res) {
+        var message = "Sync Facebook Photos";
+        var route = "/auth/facebook";
+        if (req.user.facebook.token != undefined){
+            message = "Unsync Facebook Photos";
+            route = "/deauth/facebook";
+        }
+        res.render('facebook.ejs', {
+            user : req.user,
+            message: message,
+            route: route
+        });
+    });
+
+    app.get('/auth/facebook', passport.authenticate('facebook', { scope :['user_photos'] } ));
+
+    app.get('/auth/facebook/callback', passport.authenticate('facebook', {successRedirect : '/profile', failureRedirect : '/logout'}));
+
+    app.get('/deauth/facebook', isLoggedIn, function(req, res) {
+
+        User.findOne({'username' : req.user.username }, function(err, user) {
+            // if there are any errors, return the error before anything else
+            if (err || !user)
+                return done(err);
+
+            user.facebook.token = undefined;
+
+            user.save(function(err){
+                if(err) {
+                    return done(null, user);
+                }
+            });
+        });
+
+        res.redirect('/facebook');
+    });
 };
 
 function isLoggedIn(req, res, next) {
