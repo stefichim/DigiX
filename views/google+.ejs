@@ -1,105 +1,118 @@
 <!DOCTYPE html>
 <html lang="en" class="no-js">
-	<head>
-		<meta charset="UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-		<title>DigiX - Google+ Sync</title>
-		<meta name="description" content="DigiX - Google+ Sync" />
-		<meta name="keywords" content="modal, window, overlay, modern, box, css transition, css animation, effect, 3d, perspective" />
-		<meta name="author" content="DigiX" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiX - Google+ Sync</title>
+    <meta name="description" content="DigiX - Google+ Sync"/>
+    <meta name="keywords"
+          content="modal, window, overlay, modern, box, css transition, css animation, effect, 3d, perspective"/>
+    <meta name="author" content="DigiX"/>
 
-		<link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
-		<link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
-		<script src="include/jquery/jquery-1.11.2.min.js"></script>
-		<script src="include/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
+    <script src="include/jquery/jquery-1.11.2.min.js"></script>
+    <script src="include/bootstrap/js/bootstrap.min.js"></script>
 
-		<link rel="stylesheet" type="text/css" href="stylesheets/google+/default.css" />
-		<link rel="stylesheet" type="text/css" href="stylesheets/google+/component.css" />
-	</head>
-	<header>
-		<div class="navbar navbar-default navbar-inverse">
-			<div class="container">
-				<p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in as: <%= user.username %></p>
+    <link rel="stylesheet" type="text/css" href="stylesheets/google+/default.css"/>
+    <link rel="stylesheet" type="text/css" href="stylesheets/google+/component.css"/>
+</head>
+<header>
+    <div class="navbar navbar-default navbar-inverse">
+        <div class="container">
+            <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in
+                as: <%= user.username %></p>
 
-				<a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
-				<a href="#" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
+            <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span
+                        class="glyphicon glyphicon-picture"></span></a>
+            <a href="#" class="btn navbar-btn btn-default" id="button-family-tree"><span
+                        class="glyphicon glyphicon-tree-conifer"></span></a>
 
-				<div class="dropdown btn-group btn-default">
-					<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
-					<ul class="dropdown-menu">
-						<li><a href="edit_profile">Edit profile</a></li>
-						<li><a href="google+">Add account</a></li>
-						<li class="divider"></li>
-						<li><a href="http://google.ro">Help</a></li>
-						<li><a href="logout">Log out</a></li>
-					</ul>
-				</div>
+            <div class="dropdown btn-group btn-default">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span
+                            class="glyphicon glyphicon-cog"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="edit_profile">Edit profile</a></li>
+                    <li><a href="google+">Add account</a></li>
+                    <li class="divider"></li>
+                    <li><a href="http://google.ro">Help</a></li>
+                    <li><a href="logout">Log out</a></li>
+                </ul>
+            </div>
 
-				<!-- <form action="" class="navbar-form navbar-right" role="search">
-					<div class="form-group">
-						<input type="text" class="form-control" placeholder="Search text">
-					</div>
-					<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
-				</form> -->
-			</div>
-		</div>
-	</header>
-	<body>
-		<!-- All modals added here for the demo. You would of course just have one, dynamically created -->
-		<div class="md-modal md-effect-1" id="modal-1">
-			<div class="md-content">
-				<h3>Google+</h3>
-				<div>
-					<p>Enter you Google+ credentials to get photos from here too:</p>
-					<br>
-					<form>
-						<strong>Email/Phone:</strong> <input type="text" name="fEmail" placeholder="google+ e-mail/phone" size="30">
-						<br> <br>
-						<strong>Password:</strong> <input type="password" name="fPass" placeholder="google+ password" size="30">
-						<br> <br>
-						<strong>Password:</strong> <input type="password" name="fPass2" placeholder="write password again" size="30">
-						
-					</form>
-					<br>
-					<div class="md-close ">
-						<button>Save</button>
-						<button>Close</button>
-					</div>
-				</div>
-			</div>
-		</div>
+            <!-- <form action="" class="navbar-form navbar-right" role="search">
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="Search text">
+                </div>
+                <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+            </form> -->
+        </div>
+    </div>
+</header>
+<body>
+<!-- All modals added here for the demo. You would of course just have one, dynamically created -->
+<div class="md-modal md-effect-1" id="modal-1">
+    <div class="md-content">
+        <h3>Google+</h3>
 
-		<div class="containerF">
-			<!-- Top Navigation -->
+        <div>
+            <p>Enter you Google+ credentials to get photos from here too:</p>
+            <br>
 
-			<header>
-				<h1>Google+<span>Google the hell from your google photos.</span></h1>
-			</header>
-			<div class="main clearfix">
-				<div class="column">
-					<p>Got by mistake a Google+ account? Are there photos there? Well, you can have them here too! Just login and get all your memories in one place.</p>
-				</div>
-				<div class="column">
-					<button class="md-trigger" data-modal="modal-1">Sync Google+</button>
-				</div>
-			</div>
-		</div><!-- /container -->
-		<div class="md-overlay"></div>
-		<!-- <br> -->
-		<ul class="pager">
-			<li><a href="facebook" id="previous"><span class="glyphicon glyphicon-chevron-left"></span> Facebook</a></li>
-			<li><a href="instagram" id="next">Instagram <span class="glyphicon glyphicon-chevron-right"></span></a></li>
-		</ul>
+            <form>
+                <strong>Email/Phone:</strong> <input type="text" name="fEmail" placeholder="google+ e-mail/phone"
+                                                     size="30">
+                <br> <br>
+                <strong>Password:</strong> <input type="password" name="fPass" placeholder="google+ password" size="30">
+                <br> <br>
+                <strong>Password:</strong> <input type="password" name="fPass2" placeholder="write password again"
+                                                  size="30">
 
-		<script src="javascripts/classie.js"></script>
-		<script src="javascripts/modalEffects.js"></script>
+            </form>
+            <br>
 
-		<script>
-			// this is important for IEs
-			var polyfilter_scriptpath = '/js/';
-		</script>
-		<script src="javascripts/cssParser.js"></script>
-		<script src="javascripts/css-filters-polyfill.js"></script>
-	</body>
+            <div class="md-close ">
+                <button>Save</button>
+                <button>Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="containerF">
+    <!-- Top Navigation -->
+
+    <header>
+        <h1>Google+<span>Google the hell from your google photos.</span></h1>
+    </header>
+    <div class="main clearfix">
+        <div class="column">
+            <p>Got by mistake a Google+ account? Are there photos there? Well, you can have them here too! Just login
+                and get all your memories in one place.</p>
+        </div>
+        <div class="column">
+            <!--<button class="md-trigger" data-modal="modal-1">Sync Google+</button>-->
+            <a href="/auth/google" class="btn btn-danger"><span class="fa fa-google-plus"></span>Sync Google+</a>
+        </div>
+    </div>
+</div>
+<!-- /container -->
+<div class="md-overlay"></div>
+<!-- <br> -->
+<ul class="pager">
+    <li><a href="facebook" id="previous"><span class="glyphicon glyphicon-chevron-left"></span> Facebook</a></li>
+    <li><a href="instagram" id="next">Instagram <span class="glyphicon glyphicon-chevron-right"></span></a></li>
+</ul>
+
+<script src="javascripts/classie.js"></script>
+<script src="javascripts/modalEffects.js"></script>
+
+<script>
+    // this is important for IEs
+    var polyfilter_scriptpath = '/js/';
+</script>
+<script src="javascripts/cssParser.js"></script>
+<script src="javascripts/css-filters-polyfill.js"></script>
+</body>
 </html>

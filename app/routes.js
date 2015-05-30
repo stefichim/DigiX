@@ -1,59 +1,59 @@
 // app/routes.js
-var request         =require('../node_modules/request/index.js');
+var request = require('../node_modules/request/index.js');
 // load up the user model
-var mongoose        = require('mongoose');
-var User            = require('../app/models/user');
-var muci =  require('../app/models/user.js');
-var async           = require('../node_modules/async');
-var privateInfo     = require('../app/models/private');
-var qs              = require('querystring');
+var mongoose = require('mongoose');
+var User = require('../app/models/user');
+var muci = require('../app/models/user.js');
+var async = require('../node_modules/async');
+var privateInfo = require('../app/models/private');
+var qs = require('querystring');
 
-module.exports = function(app, passport) {
-    app.get('/', function(req, res) {
-        res.render('index.ejs', { message: req.flash("message") });
+module.exports = function (app, passport) {
+    app.get('/', function (req, res) {
+        res.render('index.ejs', {message: req.flash("message")});
     });
 
     app.post('/signup', passport.authenticate('signup', {
-        successRedirect : '/profile',
-        failureRedirect : '/',
-        failureFlash : true
+        successRedirect: '/profile',
+        failureRedirect: '/',
+        failureFlash: true
     }));
 
     app.post('/login', passport.authenticate('login', {
-        successRedirect : '/profile',
-        failureRedirect : '/',
-        failureFlash : true
+        successRedirect: '/profile',
+        failureRedirect: '/',
+        failureFlash: true
     }));
 
-    app.get('/profile', isLoggedIn, function(req, res) {
-        User.findOne({'username': req.user.username}, function(err,user){
+    app.get('/profile', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
-            else{
+            else {
                 var my_pictures = [];
                 var previousButtonVisible = 'visible';
                 var nextButtonVisible = 'visible';
 
                 var i;
-                for (i = parseInt(user.current_picture_index) + 1; i < user.photos.length && i <= (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++){
+                for (i = parseInt(user.current_picture_index) + 1; i < user.photos.length && i <= (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                     my_pictures.push(user.photos[i].url);
                 }
 
                 user.current_picture_index = parseInt(user.current_picture_index) + my_pictures.length;
-                user.save(function(err){
-                    if(err) {
+                user.save(function (err) {
+                    if (err) {
                         console.dir(err);
                     }
                 });
 
-                if (parseInt(user.current_picture_index) < privateInfo.profile.numberOfPicturesPage){
+                if (parseInt(user.current_picture_index) < privateInfo.profile.numberOfPicturesPage) {
                     previousButtonVisible = 'invisible';
                 }
-                if (parseInt(user.current_picture_index) >= (user.photos.length - 1)){
+                if (parseInt(user.current_picture_index) >= (user.photos.length - 1)) {
                     nextButtonVisible = 'invisible';
                 }
 
                 res.render('profile', {
-                    user : user,
+                    user: user,
                     photos: my_pictures,
                     previousButtonVisible: previousButtonVisible,
                     nextButtonVisible: nextButtonVisible
@@ -78,11 +78,11 @@ module.exports = function(app, passport) {
 
     });
 
-    app.get('/profile/next', isLoggedIn, function(req, res){
+    app.get('/profile/next', isLoggedIn, function (req, res) {
         res.redirect('/profile');
     });
 
-    app.get('/profile/previous', isLoggedIn, function(req, res) {
+    app.get('/profile/previous', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
             if ((parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
                 user.current_picture_index = parseInt(user.current_picture_index) - (parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage;
@@ -100,7 +100,7 @@ module.exports = function(app, passport) {
         });
     });
 
-    app.get('/profile/button', isLoggedIn, function (req, res){
+    app.get('/profile/button', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
             user.current_picture_index = -1;
             user.save(function (err) {
@@ -112,16 +112,16 @@ module.exports = function(app, passport) {
         });
     });
 
-    app.get('/search_photos_button', isLoggedIn, function(req, res){
-        User.findOne({'username': req.user.username}, function(err,user){
+    app.get('/search_photos_button', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
             user.current_picture_search_index = -1;
             user.searched_photos.length = 0;
 
             var queryString = req.query.searched_text;
             if (queryString.length == 0) {
                 user.current_picture_index = -1;
-                user.save(function(err){
-                    if(err) {
+                user.save(function (err) {
+                    if (err) {
                         console.dir(err);
                     }
                 });
@@ -157,8 +157,8 @@ module.exports = function(app, passport) {
         });
     });
 
-    app.get('/search_photos', isLoggedIn, function (req, res){
-        User.findOne({'username': req.user.username}, function(err,user) {
+    app.get('/search_photos', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
             var my_pictures = [];
             var previousButtonVisible = 'visible';
             var nextButtonVisible = 'visible';
@@ -191,14 +191,14 @@ module.exports = function(app, passport) {
         });
     });
 
-    app.get('/search_photos/next', isLoggedIn, function (req, res){
-        User.findOne({'username': req.user.username}, function(err,user){
+    app.get('/search_photos/next', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
             res.redirect('/search_photos');
         });
     });
 
-    app.get('/search_photos/previous', isLoggedIn, function (req, res){
-        User.findOne({'username': req.user.username}, function(err,user){
+    app.get('/search_photos/previous', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
             var my_pictures = [];
             var previousButtonVisible = 'visible';
             var nextButtonVisible = 'visible';
@@ -227,21 +227,23 @@ module.exports = function(app, passport) {
     //----------------------------------------------------------
 
 
-    app.get('/sync/Flickr', isLoggedIn, function(req,res){
-        var  oauth = {
+    app.get('/sync/Flickr', isLoggedIn, function (req, res) {
+        var oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret }
+                , consumer_secret: privateInfo.flickr.consumer_secret
+            }
             , url = 'https://www.flickr.com/services/oauth/request_token';
 
-        request.post({url:url, oauth:oauth}, function(e,r,body){
-            var req_data=qs.parse(body);
-            var uri='https://www.flickr.com/services/oauth/authorize' + '?'+
-                qs.stringify({oauth_token:req_data.oauth_token});
+        request.post({url: url, oauth: oauth}, function (e, r, body) {
+            var req_data = qs.parse(body);
+            var uri = 'https://www.flickr.com/services/oauth/authorize' + '?' +
+                qs.stringify({oauth_token: req_data.oauth_token});
             res.redirect(uri);
-            app.get('/flickr/code',function(req,res) {
-                var  oauth =
-                    {   consumer_key: privateInfo.flickr.consumer_key
+            app.get('/flickr/code', function (req, res) {
+                var oauth =
+                    {
+                        consumer_key: privateInfo.flickr.consumer_key
                         , consumer_secret: privateInfo.flickr.consumer_secret
                         , token: req.query.oauth_token
                         , token_secret: req_data.oauth_token_secret
@@ -250,11 +252,12 @@ module.exports = function(app, passport) {
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
 
-                request.post({url:url, oauth:oauth}, function (e, r, body) {
+                request.post({url: url, oauth: oauth}, function (e, r, body) {
 
                     var perm_data = qs.parse(body)
                         , oauth =
-                        { consumer_key: privateInfo.flickr.consumer_key
+                        {
+                            consumer_key: privateInfo.flickr.consumer_key
                             , consumer_secret: privateInfo.flickr.consumer_secret
                             , token: perm_data.oauth_token
                             , token_secret: perm_data.oauth_token_secret
@@ -266,7 +269,7 @@ module.exports = function(app, passport) {
                         oauth_token_secret: perm_data.oauth_token_secret,
                         nsid: perm_data.user_nsid
                     };
-                    updateFlickrCredentials(credentials,res);
+                    updateFlickrCredentials(credentials, res);
 
                 });
 
@@ -277,26 +280,26 @@ module.exports = function(app, passport) {
 
     });
 
-    function updateFlickrCredentials(credentials, next){
+    function updateFlickrCredentials(credentials, next) {
 
 
-        User.findOne({'username': credentials.username}, function(err,user){
-            user.flickr.token=credentials.oauth_token;
-            user.flickr.token_secret=credentials.oauth_token_secret;
-            user.flickr.nsid=credentials.nsid;
-            user.save(function(err){
-                if(err) console.dir(err);
-                else next.redirect('/flickr/get/photos/?username='+credentials.username);
+        User.findOne({'username': credentials.username}, function (err, user) {
+            user.flickr.token = credentials.oauth_token;
+            user.flickr.token_secret = credentials.oauth_token_secret;
+            user.flickr.nsid = credentials.nsid;
+            user.save(function (err) {
+                if (err) console.dir(err);
+                else next.redirect('/flickr/get/photos/?username=' + credentials.username);
             });
         });
 
     }
 
 
-    app.get('/flickr/get/photos', function(req,res){
+    app.get('/flickr/get/photos', function (req, res) {
 
-        User.findOne({username: req.query.username}, function(err,user){
-            if(err) {
+        User.findOne({username: req.query.username}, function (err, user) {
+            if (err) {
                 console.dir(err);
                 return;
             }
@@ -305,74 +308,76 @@ module.exports = function(app, passport) {
                 , consumer_secret: privateInfo.flickr.consumer_secret
                 , token: user.flickr.token
                 , token_secret: user.flickr.token_secret
-            },url='https://api.flickr.com/services/rest'+'?'+'method=flickr.people.getPhotos'+
-                '&'+'user_id='+ user.flickr.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
+            }, url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.people.getPhotos' +
+                '&' + 'user_id=' + user.flickr.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
 
-            request.get({url:url, oauth:oauth}, function(e,r,body){
-                if(e) {
+            request.get({url: url, oauth: oauth}, function (e, r, body) {
+                if (e) {
                     console.dir(e);
                     return;
                 }
-                insertDatabase(req.query.username,JSON.parse(body),res);
+                insertDatabase(req.query.username, JSON.parse(body), res);
             });
         });
     });
 
 
-    function insertDatabase(username,body,next){
-        var count=0;
-        User.findOne({username: username}, function(err,user) {
+    function insertDatabase(username, body, next) {
+        var count = 0;
+        User.findOne({username: username}, function (err, user) {
             if (err) {
                 console.dir(err);
                 return;
             }
-            var data={
+            var data = {
                 username: username,
                 body: body,
-                count:count,
+                count: count,
                 user: user
             }
             nextPicture(data, next);
         });
 
     }
-    function nextPicture(data,next){
-        var total=data.body.photos.total;
-        if(data.count==total) {
-            data.user.save(function(err){
-                if(err) return;
+
+    function nextPicture(data, next) {
+        var total = data.body.photos.total;
+        if (data.count == total) {
+            data.user.save(function (err) {
+                if (err) return;
             })
             return next.redirect('/flickr');
         }
-        var rspPhoto=data.body.photos.photo[data.count];
+        var rspPhoto = data.body.photos.photo[data.count];
 
-        var photoUrl='https://farm'+rspPhoto.farm + '.staticflickr.com/'
-            + rspPhoto.server + '/'+ rspPhoto.id+'_'+rspPhoto.secret
-            +'.jpg';
-        var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.tags.getListPhoto'+
-                '&'+'photo_id='+ rspPhoto.id + '&format=json&nojsoncallback=1'
-            ,oauth = {
+        var photoUrl = 'https://farm' + rspPhoto.farm + '.staticflickr.com/'
+            + rspPhoto.server + '/' + rspPhoto.id + '_' + rspPhoto.secret
+            + '.jpg';
+        var url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.tags.getListPhoto' +
+                '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1'
+            , oauth = {
                 consumer_key: privateInfo.flickr.consumer_key
-                ,consumer_secret: privateInfo.flickr.consumer_secret};
-        request.get({url:url, oauth:oauth}, function(e,r,body){
-            if(e) {
+                , consumer_secret: privateInfo.flickr.consumer_secret
+            };
+        request.get({url: url, oauth: oauth}, function (e, r, body) {
+            if (e) {
                 console.dir(e);
                 return;
             }
-            var tags=JSON.parse(body);
+            var tags = JSON.parse(body);
             var realTags = [];
-            for(j=0;j<tags.photo.tags.tag.length;j++){
+            for (j = 0; j < tags.photo.tags.tag.length; j++) {
                 realTags.push(tags.photo.tags.tag[j].raw);
             }
             data.user.photos.push({'url': photoUrl, 'tags': realTags});
             data.count++;
-            nextPicture(data,next);
+            nextPicture(data, next);
         });
     }
 
-    function check(user ){
-        user.save(function(err){
-            if(err) {
+    function check(user) {
+        user.save(function (err) {
+            if (err) {
                 console.dir(err);
             }
         });
@@ -392,9 +397,9 @@ module.exports = function(app, passport) {
     //----------------------------------------------------------
     //----------------------------------------------------------
 
-    app.get('/instagram/code', isLoggedIn, function(req, res) {
-        if(req.query && req.query.code){
-            var data= {
+    app.get('/instagram/code', isLoggedIn, function (req, res) {
+        if (req.query && req.query.code) {
+            var data = {
                 'client_id': privateInfo.instagram.client_id,
                 'client_secret': privateInfo.instagram.client_secret,
                 'redirect_uri': privateInfo.instagram.redirect_uri,
@@ -403,45 +408,46 @@ module.exports = function(app, passport) {
             }
             request.post(
                 {url: privateInfo.instagram.url_get_access_token, form: data},
-                function(err,httpResponse,body){
+                function (err, httpResponse, body) {
 
                     var instagram_token = JSON.parse(body);
-                    User.findOne({'username': req.user.username}, function(err,user){
+                    User.findOne({'username': req.user.username}, function (err, user) {
                         user.instagram.access_token = instagram_token;
-                        user.save(function(err, next){
+                        user.save(function (err, next) {
                             if (err) console.log(err);
-                            getInstagramPictures(req, res, function(err,result){
-                                if(err){
+                            getInstagramPictures(req, res, function (err, result) {
+                                if (err) {
                                     console.log(err)
-                                }else{
-                                    res.redirect('/instagram');}
+                                } else {
+                                    res.redirect('/instagram');
+                                }
                             });
                         });
                     });
 
                     /*var instagram_token=JSON.parse(body);
-                    req.db.collection('users').update(
-                        {'_id':req.user['_id']},
-                        {"$set":{"instagram":instagram_token}}
-                        ,function(err,result){
-                            if(err){console.log(err);}
-                            getInstagramPictures(req, res, function(err,result){
-                                if(err){
-                                    console.log(err)
-                                }else{
-                                    res.redirect('/profile');}
-                            });
-                        });*/
+                     req.db.collection('users').update(
+                     {'_id':req.user['_id']},
+                     {"$set":{"instagram":instagram_token}}
+                     ,function(err,result){
+                     if(err){console.log(err);}
+                     getInstagramPictures(req, res, function(err,result){
+                     if(err){
+                     console.log(err)
+                     }else{
+                     res.redirect('/profile');}
+                     });
+                     });*/
 
                 });
         }
     });
 
     function getInstagramPictures(req, res, next) {
-        User.findOne({'username': req.user.username}, function(err,user){
+        User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
             else if (!user.instagram.access_token) console.log('No access token found for INSTAGRAM. Moving on!');
-            else{
+            else {
                 req.ig.use({
                     client_id: privateInfo.instagram.client_id,
                     client_secret: privateInfo.instagram.client_secret
@@ -449,63 +455,63 @@ module.exports = function(app, passport) {
                 req.ig.use({
                     'access_token': user.instagram.access_token.access_token
                 });
-                req.ig.user_self_media_recent(function(err, medias, pagination, remaining, limit) {
+                req.ig.user_self_media_recent(function (err, medias, pagination, remaining, limit) {
                     if (err) {
                         next(err);
                     } else {
                         var my_medias = [];
-                        async.each(medias, function(media, callback) {
+                        async.each(medias, function (media, callback) {
                             var url = media.images.standard_resolution.url;
-                            var tags={}
+                            var tags = {}
                             async.parallel([
 
-                                function(_callback) {
-                                    async.each(media.comments.data, function(comment, _cb) {
-                                        tags[comment.from.username.toLowerCase()]=true;
+                                function (_callback) {
+                                    async.each(media.comments.data, function (comment, _cb) {
+                                        tags[comment.from.username.toLowerCase()] = true;
                                         var words = comment.from.full_name.split(" ");
-                                        words.forEach(function (element, index, array){
+                                        words.forEach(function (element, index, array) {
                                             tags[element.toLowerCase()] = true;
                                         });
                                         _cb();
                                     }, _callback);
                                 },
-                                function(_callback) {
-                                    async.each(media.comments.data, function(comment, _cb) {
+                                function (_callback) {
+                                    async.each(media.comments.data, function (comment, _cb) {
                                         var words = comment.text.split(" ");
-                                        words.forEach(function (element, index, array){
+                                        words.forEach(function (element, index, array) {
                                             tags[element.toLowerCase()] = true;
                                         });
                                         _cb();
                                     }, _callback);
                                 },
-                                function(_callback) {
-                                    async.each(media.likes.data, function(like, _cb) {
-                                        tags[like.username]=true;
+                                function (_callback) {
+                                    async.each(media.likes.data, function (like, _cb) {
+                                        tags[like.username] = true;
                                         var words = like.full_name.split(" ");
-                                        words.forEach(function (element, index, array){
+                                        words.forEach(function (element, index, array) {
                                             tags[element.toLowerCase()] = true;
                                         });
                                         _cb();
                                     }, _callback);
                                 },
-                                function(_callback) {
-                                    async.each(media.users_in_photo, function(user, _cb) {
-                                        tags[user.user.username.toLowerCase()]=true;
+                                function (_callback) {
+                                    async.each(media.users_in_photo, function (user, _cb) {
+                                        tags[user.user.username.toLowerCase()] = true;
                                         var words = user.user.full_name.split(" ");
-                                        words.forEach(function (element, index, array){
+                                        words.forEach(function (element, index, array) {
                                             tags[element.toLowerCase()] = true;
                                         });
                                         _cb();
                                     }, _callback);
                                 },
-                                function(_callback) {
-                                    async.each(media.tags, function(tag, _cb) {
-                                        tags[tag.toLowerCase()]=true;
+                                function (_callback) {
+                                    async.each(media.tags, function (tag, _cb) {
+                                        tags[tag.toLowerCase()] = true;
                                         //tags[tag.toLowerCase()]=true;
                                         _cb();
                                     }, _callback);
                                 }
-                            ], function() {
+                            ], function () {
                                 my_medias.push({
                                     'url': url,
                                     'tags': Object.keys(tags),
@@ -513,13 +519,13 @@ module.exports = function(app, passport) {
                                 });
                                 callback();
                             });
-                        }, function() {
+                        }, function () {
                             //user.photos = user.photos.concat(my_medias);
                             //a.push.apply(a, b)
                             user.photos.push.apply(user.photos, my_medias);
                             //console.log(user.photos);
-                            user.save(function(err){
-                                if(err) {
+                            user.save(function (err) {
+                                if (err) {
                                     console.dir(err);
                                 }
                             });
@@ -533,10 +539,10 @@ module.exports = function(app, passport) {
 
     };
 
-    app.get('/instagram/unsync', isLoggedIn, function(req, res){
-        User.findOne({'username': req.user.username}, function(err,user) {
+    app.get('/instagram/unsync', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
-            else{
+            else {
                 var i;
                 for (i = 0; i < user.photos.length; ++i) {
                     if (user.photos[i].source === "Instagram") {
@@ -544,8 +550,8 @@ module.exports = function(app, passport) {
                     }
                 }
                 user.instagram.access_token = undefined;
-                user.save(function(err){
-                    if(err) {
+                user.save(function (err) {
+                    if (err) {
                         console.dir(err);
                     }
                 });
@@ -560,59 +566,59 @@ module.exports = function(app, passport) {
     //----------------------------------------------------------
     //----------------------------------------------------------
 
-    app.get('/edit_profile', isLoggedIn, function(req, res) {
+    app.get('/edit_profile', isLoggedIn, function (req, res) {
         res.render('edit_profile', {
-            user : req.user
+            user: req.user
         });
     });
 
     app.post('/edit_profile', passport.authenticate('edit', {
-        successRedirect : '/profile',
-        failureRedirect : '/profile',
-        failureFlash : true
+        successRedirect: '/profile',
+        failureRedirect: '/profile',
+        failureFlash: true
     }));
 
-    app.get('/facebook', isLoggedIn, function(req, res) {
+    app.get('/facebook', isLoggedIn, function (req, res) {
         res.render('facebook.ejs', {
-            user : req.user
+            user: req.user
         });
     });
 
-    app.get('/google', isLoggedIn, function(req, res) {
+    app.get('/google', isLoggedIn, function (req, res) {
         res.render('google+.ejs', {
-            user : req.user
+            user: req.user
         });
     });
 
-    app.get('/instagram', isLoggedIn, function(req, res) {
+    app.get('/instagram', isLoggedIn, function (req, res) {
         var msg = "Sync Instagram";
         var route = "https://instagram.com/oauth/authorize/?client_id=094ce9a906634c468f99aaa7da117b65&redirect_uri=http://localhost:2080/instagram/code&response_type=code";
-        if (req.user.instagram.access_token != undefined){
+        if (req.user.instagram.access_token != undefined) {
             msg = "Unsync Instagram";
             route = "/instagram/unsync";
         }
         res.render('instagram.ejs', {
-            user : req.user,
+            user: req.user,
             msg: msg,
             route: route
         });
     });
 
-    app.get('/flickr', isLoggedIn, function(req, res) {
-        var msg="Sync Flickr";
-        var link="/sync/Flickr";
-        if(req.user.flickr.nsid!=undefined) {
+    app.get('/flickr', isLoggedIn, function (req, res) {
+        var msg = "Sync Flickr";
+        var link = "/sync/Flickr";
+        if (req.user.flickr.nsid != undefined) {
             msg = "Unsync Flickr";
-            link="/unsync/Flickr";
+            link = "/unsync/Flickr";
         }
         res.render('flickr.ejs', {
-            user : req.user,
+            user: req.user,
             msg: msg,
             link: link
         });
     });
 
-    app.get('/logout', function(req, res) {
+    app.get('/logout', function (req, res) {
         req.logout();
         res.redirect('/');
     });
@@ -630,6 +636,16 @@ module.exports = function(app, passport) {
     //        }
     //    })
     //})
+
+    app.get('/auth/google', isLoggedIn, passport.authenticate('google', {scope: ['https://picasaweb.google.com/data/', 'profile', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.me']}));
+
+    // the callback after google has authenticated the user
+    app.get('/auth/google/callback',
+        passport.authenticate('google', {
+            successRedirect: '/profile',
+            failureRedirect: '/'
+        })
+    );
 };
 
 function isLoggedIn(req, res, next) {
