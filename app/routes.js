@@ -578,12 +578,6 @@ module.exports = function (app, passport) {
         failureFlash: true
     }));
 
-    app.get('/facebook', isLoggedIn, function (req, res) {
-        res.render('facebook.ejs', {
-            user: req.user
-        });
-    });
-
     app.get('/google', isLoggedIn, function (req, res) {
         res.render('google+.ejs', {
             user: req.user
@@ -640,12 +634,10 @@ module.exports = function (app, passport) {
     app.get('/auth/google', isLoggedIn, passport.authenticate('google', {scope: ['https://picasaweb.google.com/data/', 'profile', 'https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/plus.me']}));
 
     // the callback after google has authenticated the user
-    app.get('/auth/google/callback',
-        passport.authenticate('google', {
+    app.get('/auth/google/callback', passport.authenticate('google', {
             successRedirect: '/profile',
             failureRedirect: '/'
-        })
-    })
+        }));
 
     /* Facebook - Tudor */
     app.get('/facebook', isLoggedIn, function(req, res) {
@@ -684,7 +676,6 @@ module.exports = function (app, passport) {
 
         res.redirect('/facebook');
     });
-    );
 };
 
 function isLoggedIn(req, res, next) {

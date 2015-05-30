@@ -236,7 +236,6 @@ module.exports = function (passport) {
 
             return done(null, req.user);
         }));
-};
 
     passport.use('google', new GoogleStrategy({
 
@@ -276,3 +275,4 @@ module.exports = function (passport) {
                 });
 
             }));
+};
