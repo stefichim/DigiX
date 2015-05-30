@@ -667,6 +667,12 @@ module.exports = function (app, passport) {
 
             user.facebook.token = undefined;
 
+            for (var i = user.photos.length - 1; i >= 0; i--) {
+                if (user.photos[i].source == 'Facebook') {
+                    user.photos.splice(i, 1);
+                }
+            }
+
             user.save(function(err){
                 if(err) {
                     return done(null, user);
