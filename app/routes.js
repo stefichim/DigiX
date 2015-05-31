@@ -110,19 +110,6 @@ module.exports = function (app, passport) {
 
     app.get('/profile/previous', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
-            //if ((parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
-            //    user.current_picture_index = parseInt(user.current_picture_index) - (parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage;
-            //    user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
-            //} else {
-            //    user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
-            //    user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
-            //}
-            //user.save(function (err) {
-            //    if (err) {
-            //        console.dir(err);
-            //    }
-            //});
-            //res.redirect('/profile');
 
             user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
             user.save(function (err) {
@@ -203,12 +190,7 @@ module.exports = function (app, passport) {
                 my_pictures.push(user.searched_photos[i].url);
             }
 
-            //user.current_picture_search_index = parseInt(user.current_picture_search_index) + my_pictures.length;
-            //user.save(function (err) {
-            //    if (err) {
-            //        console.dir(err);
-            //    }
-            //});
+
 
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
@@ -240,24 +222,7 @@ module.exports = function (app, passport) {
 
     app.get('/search_photos/previous', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
-            //var my_pictures = [];
-            //var previousButtonVisible = 'visible';
-            //var nextButtonVisible = 'visible';
-            //
-            //if ((parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
-            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - (parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage;
-            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
-            //} else {
-            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
-            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
-            //}
-            //user.save(function (err) {
-            //    if (err) {
-            //        console.dir(err);
-            //    }
-            //});
-            //
-            //res.redirect('/search_photos');
+
 
             user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
             user.save(function (err) {
@@ -276,7 +241,89 @@ module.exports = function (app, passport) {
     //----------------------------------------------------------
 
 
+    app.get('/arbore', isLoggedIn, function (req, res) {
+        console.log("ceva");
+        res.render('arbore.ejs', {});
+    });
+
+
+    function changeSons(node, type, user, res) {
+        if (user.tree.length == 0) changeMyself(user, node, res);
+        else {
+            for (i = 0; i < user.tree.length; i++) {
+                console.log(user.tree[i].myId);
+                console.log(node.relId);
+                if (user.tree[i].myId == node.relId) {
+                    console.log("pavaloi");
+                    if (type == "mother") user.tree[i].mother = String(node.myId);
+                    else user.tree[i].father = String(node.myId);
+                    changeMyself(user, node, res);
+                }
+            }
+        }
+    }
+
+    function changeMyself(user, node, res) {
+        var found = false;
+        for (i = 0; i < user.tree.length; i++) {
+            if (user.tree[i].myId == node.myId) {
+                console.log("here");
+                user.tree[i].children.push(node.relId);
+                found = true;
+            }
+        }
+
+        if (found == false) {
+            user.tree.push({
+                'myId': node.myId,
+                'name': node.name,
+                'mother': "",
+                'father': "",
+                'myType': node.type,
+                'children': [node.child]
+            });
+            console.log("inserez");
+            console.log(user.tree[0]);
+
+            user.save(function (err) {
+                console.log(user);
+                console.log("ceva");
+                if (err) {
+                    console.dir(err);
+                }
+
+            });
+        }
+
+    }
+
+    app.post('/ajax', isLoggedIn, function (req, res) {
+
+        var node = req.body.node;
+        User.findOne({'username': req.user.username}, function (err, user) {
+            changeSons(node, node.type, user, res);
+        });
+
+    });
+
+    app.get('/unsync/Flickr', isLoggedIn, function(req,res){
+        console.log("unsync");
+        User.findOne({username: req.user.username}, function (err, user) {
+            if (err || !user)
+                return done(err);
+            api.unsyncFlickr(user, function (user) {
+                console.log("bere");
+                user.save(function (err) {
+                    if (err)
+                        throw  err;
+                    res.redirect('/flickr');
+                })
+            });
+        });
+    });
+
     app.get('/sync/Flickr', isLoggedIn, function (req, res) {
+        var tempUsername=req.user;
         var oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -303,16 +350,9 @@ module.exports = function (app, passport) {
 
                 request.post({url: url, oauth: oauth}, function (e, r, body) {
 
-                    var perm_data = qs.parse(body)
-                        , oauth =
-                        {
-                            consumer_key: privateInfo.flickr.consumer_key
-                            , consumer_secret: privateInfo.flickr.consumer_secret
-                            , token: perm_data.oauth_token
-                            , token_secret: perm_data.oauth_token_secret
-                        };
+                    var perm_data = qs.parse(body);
 
-                    var req = {
+                    var credentials = {
                         username: tempUsername.username,
                         oauth_token: perm_data.oauth_token,
                         oauth_token_secret: perm_data.oauth_token_secret,
@@ -338,99 +378,13 @@ module.exports = function (app, passport) {
             user.flickr.nsid = credentials.nsid;
             user.save(function (err) {
                 if (err) console.dir(err);
-                else next.redirect('/flickr/get/photos/?username=' + credentials.username);
+                else api.getFlickrPhotos(credentials.username,next);
             });
         });
 
     }
 
 
-    app.get('/flickr/get/photos', function (req, res) {
-
-        User.findOne({username: req.query.username}, function (err, user) {
-            if (err) {
-                console.dir(err);
-                return;
-            }
-            var oauth = {
-                consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret
-                , token: user.flickr.token
-                , token_secret: user.flickr.token_secret
-            }, url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.people.getPhotos' +
-                '&' + 'user_id=' + user.flickr.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
-
-            request.get({url: url, oauth: oauth}, function (e, r, body) {
-                if (e) {
-                    console.dir(e);
-                    return;
-                }
-                insertDatabase(req.query.username, JSON.parse(body), res);
-            });
-        });
-    });
-
-
-    function insertDatabase(username, body, next) {
-        var count = 0;
-        User.findOne({username: username}, function (err, user) {
-            if (err) {
-                console.dir(err);
-                return;
-            }
-            var data = {
-                username: username,
-                body: body,
-                count: count,
-                user: user
-            }
-            nextPicture(data, next);
-        });
-
-    }
-
-    function nextPicture(data, next) {
-        var total = data.body.photos.total;
-        if (data.count == total) {
-            data.user.save(function (err) {
-                if (err) return;
-            })
-            return next.redirect('/flickr');
-        }
-        var rspPhoto = data.body.photos.photo[data.count];
-
-        var photoUrl = 'https://farm' + rspPhoto.farm + '.staticflickr.com/'
-            + rspPhoto.server + '/' + rspPhoto.id + '_' + rspPhoto.secret
-            + '.jpg';
-        var url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.tags.getListPhoto' +
-                '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1'
-            , oauth = {
-                consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret
-            };
-        request.get({url: url, oauth: oauth}, function (e, r, body) {
-            if (e) {
-                console.dir(e);
-                return;
-            }
-            var tags = JSON.parse(body);
-            var realTags = [];
-            for (j = 0; j < tags.photo.tags.tag.length; j++) {
-                realTags.push(tags.photo.tags.tag[j].raw);
-            }
-            data.user.photos.push({'url': photoUrl, 'tags': realTags});
-            data.count++;
-            nextPicture(data, next);
-        });
-    }
-
-    function check(user) {
-        user.save(function (err) {
-            if (err) {
-                console.dir(err);
-            }
-        });
-    }
 
 
     //----------------------------------------------------------

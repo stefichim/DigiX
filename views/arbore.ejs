@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="stylesheets/arbore.css" rel="stylesheet" type="text/css">
+    <script src="javascripts/arbore.js" type="text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+</head>
+<body>
+<div class="control">
+    <div class="nume">
+        Nume:
+        <input type="text" value="">
+        <br>
+        <input type="button" value="Submit">
+    </div>
+    <br><hr>
+    <div class="parent">
+        <form>
+            Nume: <input type="text" value="" id="parentText">
+            <select id="parentSelect">
+                <option value="mother">Mother</option>
+                <option value="father">Father</option>
+            </select>
+            <br>
+            <input type="button" value="Submit" onclick="addParent(this.form)">
+        </form>
+    </div>
+    <br><hr>
+    <div class="child">
+        Nume: <input type="text" value="">
+        <br>
+        <input type="button" value="Submit" >
+    </div>
+    <br> <hr>
+    <input type="button" value="Submit ALL" onclick="sendData()">
+</div>
+
+<div class="tree">
+    <div class="root" id="root" onclick="selectThis(event,this)"> Root</div>
+</div>
+</body>
+
+</html>
