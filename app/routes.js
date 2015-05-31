@@ -7,6 +7,7 @@ var async = require('../node_modules/async');
 var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 var api = require('../config/api');
+var treeF= require('../config/treeFunctions');
 
 module.exports = function (app, passport) {
     app.get('/', function (req, res) {
@@ -242,70 +243,111 @@ module.exports = function (app, passport) {
 
 
     app.get('/arbore', isLoggedIn, function (req, res) {
-        console.log("ceva");
         res.render('arbore.ejs', {});
     });
 
 
-    function changeSons(node, type, user, res) {
-        if (user.tree.length == 0) changeMyself(user, node, res);
-        else {
-            for (i = 0; i < user.tree.length; i++) {
-                console.log(user.tree[i].myId);
-                console.log(node.relId);
-                if (user.tree[i].myId == node.relId) {
-                    console.log("pavaloi");
-                    if (type == "mother") user.tree[i].mother = String(node.myId);
-                    else user.tree[i].father = String(node.myId);
-                    changeMyself(user, node, res);
-                }
-            }
-        }
-    }
-
-    function changeMyself(user, node, res) {
-        var found = false;
-        for (i = 0; i < user.tree.length; i++) {
-            if (user.tree[i].myId == node.myId) {
-                console.log("here");
-                user.tree[i].children.push(node.relId);
-                found = true;
-            }
-        }
-
-        if (found == false) {
-            user.tree.push({
-                'myId': node.myId,
-                'name': node.name,
-                'mother': "",
-                'father': "",
-                'myType': node.type,
-                'children': [node.child]
-            });
-            console.log("inserez");
-            console.log(user.tree[0]);
-
-            user.save(function (err) {
-                console.log(user);
-                console.log("ceva");
-                if (err) {
-                    console.dir(err);
-                }
-
-            });
-        }
-
-    }
-
     app.post('/ajax', isLoggedIn, function (req, res) {
-
         var node = req.body.node;
         User.findOne({'username': req.user.username}, function (err, user) {
-            changeSons(node, node.type, user, res);
+            updateTree(user,node);
         });
 
     });
 
+    app.get('/get/root', isLoggedIn, function(req,res){
+        console.log("AJAX");
+        var tree=req.user.tree;
+        var root;
+        for(i=0;i<tree.length;i++){
+            if(tree[i].myID=="root") root=tree[i];
+        }
+        console.log(root);
+        res.send(root);
+    });
+
+    app.get('/get/parents', isLoggedIn, function(req,res){
+        var myID=req.query.myID;
+        var parents = {
+            mother: String,
+            father: String
+        }
+        var tree=req.user.tree;
+        for(i=0;i<tree.length;i++){
+            if(tree[i].myID==myID){
+                parents.mother=tree[i].mother;
+                parents.father=tree[i].father;
+                res.send(parents);
+            }
+        }
+        res.send(parents);
+    });
+
+    app.get('/get/children', isLoggedIn, function(req,res){
+        var tree=req.user.tree;
+        var myID=req.query.myID;
+        var children= {
+            boys: [String],
+            girl: [String]
+        }
+        for(i=0;i<tree.length;i++){
+            if(tree[i].mother==myID || tree[i].father==myID){
+                if(tree[i].genre=="male") children.boys.push(tree[i].myID);
+                else children.girl.push(tree[i].myID);
+            }
+        }
+        res.send(children);
+    });
+
+
+
+    function updateTree(user, node, res) {
+        var found=false;
+        for (i = 0; i < user.tree.length; i++) {
+            if(found==true) return;
+            if (user.tree[i].myID = node.fromID) {
+                var newNode = {
+                    myID: node.myID,
+                    name: node.name,
+                    mother: "",
+                    father: "",
+                    genre: ""
+                }
+                if (node.type == "mother") {
+                    user.tree[i].mother = node.myID;
+                    newNode.genre="female";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+                else if (node.type == "father") {
+                    user.tree[i].father = node.myID;
+                    newNode.genre="male";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+                else if (node.type == "girl"){
+                    newNode.mother=node.fromID;
+                    newNode.genre="female";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+                else if(node.type=="boy"){
+                    newNode.father=node.fromID;
+                    newNode.genre="male";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+
+            }
+            if(found==true){
+                user.save(function(err){
+                    if(err) console.dir(err);
+
+                })
+            }
+        }
+
+    }
     app.get('/unsync/Flickr', isLoggedIn, function(req,res){
         console.log("unsync");
         User.findOne({username: req.user.username}, function (err, user) {
@@ -428,19 +470,7 @@ module.exports = function (app, passport) {
                         });
                     });
 
-                    /*var instagram_token=JSON.parse(body);
-                     req.db.collection('users').update(
-                     {'_id':req.user['_id']},
-                     {"$set":{"instagram":instagram_token}}
-                     ,function(err,result){
-                     if(err){console.log(err);}
-                     getInstagramPictures(req, res, function(err,result){
-                     if(err){
-                     console.log(err)
-                     }else{
-                     res.redirect('/profile');}
-                     });
-                     });*/
+
 
                 });
         }
@@ -614,19 +644,7 @@ module.exports = function (app, passport) {
         res.redirect('/');
     });
 
-    //app.get('/photos',isLoggedIn, function(req, res){
-    //    console.log("alohaa");
-    //    req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
-    //        if (err){
-    //            res.send("Error");
-    //        }
-    //        else {
-    //            cursor.toArray(function(err,result){
-    //                res.send(result);
-    //            })
-    //        }
-    //    })
-    //})
+
     app.get('/google', isLoggedIn, function (req, res) {
         var message = "Sync Google+";
         var route = "/auth/google";

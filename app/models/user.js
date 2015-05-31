@@ -48,15 +48,15 @@ var userSchema = mongoose.Schema({
         score: Number
     }],
     tree: [{
-        myId: String,
+        myID: String,
         name: String,
         mother: String,
         father: String,
-        myType: String,
-        children: [String]
+        genre: String
     }]
 
 });
+
 
 
 // methods ======================
