@@ -2,6 +2,14 @@
  * Created by Pava on 5/25/2015.
  */
 module.exports={
+    profile :{
+        numberOfPicturesPage: 9
+    },
+    'facebookAuth' : {
+        'clientID'      : '1629718813930407',
+        'clientSecret'  : 'f7edaaa38b23f4080a246ba37d388d1f',
+        'callbackURL'   : 'http://localhost:2080/login'
+    },
     flickr : {
         consumer_key: '3df130b07fe77f78ba318d87fe192c00',
         consumer_secret: '1d3e72bacff0745c'
