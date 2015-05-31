@@ -339,7 +339,7 @@ function splitTextInTags(text) {
     }
 
     if (i - tagFirstPos > 0) {
-        tags.push(text.substring(tagFirstPos, i));
+        tags.push(text.substring(tagFirstPos, i).toLowerCase());
     }
 
     return tags;

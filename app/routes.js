@@ -153,16 +153,35 @@ module.exports = function (app, passport) {
             else {
                 //var words = queryString.toLowerCase().split(" ");
                 var words = api.splitTextInTags(queryString);
-                console.log(words);
 
                 var i;
                 for (i = 0; i < user.photos.length; i++) {
-                    var tags = user.photos[i].tags.filter(function (n) {
-                        return words.indexOf(n) != -1
+
+                    var photoTags = [];
+                    photoTags.push.apply(photoTags, user.photos[i].tags.description);
+                    for (var j = 0; j < user.photos[i].tags.comments.length; j++){
+                        photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].author);
+                        photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].content);
+                    }
+                    photoTags.push.apply(photoTags, user.photos[i].tags.likes);
+                    photoTags.push.apply(photoTags, user.photos[i].tags.tagged);
+
+                    photoTags = photoTags.filter(function (value, index, self) {
+                        return self.indexOf(value) === index;
                     });
+
+                    var tagsScore = 0;
+                    for (var j = 0; j < words.length; j++){
+                        for (var k = 0; k < photoTags.length; k++){
+                            if (photoTags[k].indexOf(words[j]) > -1){
+                                tagsScore++;
+                            }
+                        }
+                    }
+
                     var photo = {
                         url: user.photos[i].url,
-                        score: tags.length
+                        score: tagsScore
                     }
 
                     user.searched_photos.push(photo);
