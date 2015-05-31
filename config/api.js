@@ -359,5 +359,6 @@ module.exports = {
     getFlickrPhotos: getFlickrPhotos,
     unsyncFlickr: unsyncFlickr,
 
-    getPicasaAlbums: getPicasaAlbums
+    getPicasaAlbums: getPicasaAlbums,
+    splitTextInTags: splitTextInTags
 };

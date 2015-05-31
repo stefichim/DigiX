@@ -141,7 +141,7 @@ module.exports = function (app, passport) {
 
             var queryString = req.query.searched_text;
             if (queryString.length == 0) {
-                user.current_picture_index = -1;
+                user.current_picture_index = 0;
                 user.save(function (err) {
                     if (err) {
                         console.dir(err);
@@ -150,7 +150,9 @@ module.exports = function (app, passport) {
                 res.redirect('/profile');
             }
             else {
-                var words = queryString.toLowerCase().split(" ");
+                //var words = queryString.toLowerCase().split(" ");
+                var words = api.splitTextInTags(queryString);
+                console.log(words);
 
                 var i;
                 for (i = 0; i < user.photos.length; i++) {
@@ -384,9 +386,6 @@ module.exports = function (app, passport) {
 
     }
 
-
-
-
     //----------------------------------------------------------
     //----------------------------------------------------------
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
@@ -465,51 +464,73 @@ module.exports = function (app, passport) {
                         var my_medias = [];
                         async.each(medias, function (media, callback) {
                             var url = media.images.standard_resolution.url;
-                            var tags = {}
+                            var tags = {};
+                            tags.description = [];
+                            tags.comments = [];
+                            tags.likes =[];
+                            tags.tagged = [];
                             async.parallel([
 
                                 function (_callback) {
                                     async.each(media.comments.data, function (comment, _cb) {
-                                        tags[comment.from.username.toLowerCase()] = true;
-                                        var words = comment.from.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        var comm = [];
+                                        comm.author = [];
+                                        comm.author.push.apply(comm.author, api.splitTextInTags(comment.from.username));
+                                        comm.author.push.apply(comm.author, api.splitTextInTags(comment.from.full_name));
+
+                                        comm.content = [];
+                                        comm.content.push.apply(comm.content, api.splitTextInTags(comment.text));
+
+                                        tags.comments.push(comm);
+
+                                        //tags[comment.from.username.toLowerCase()] = true;
+                                        //var words = comment.from.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
-                                function (_callback) {
-                                    async.each(media.comments.data, function (comment, _cb) {
-                                        var words = comment.text.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
-                                        _cb();
-                                    }, _callback);
-                                },
+                                //function (_callback) {
+                                //    async.each(media.comments.data, function (comment, _cb) {
+                                //        var words = comment.text.split(" ");
+                                //        words.forEach(function (element, index, array) {
+                                //            tags[element.toLowerCase()] = true;
+                                //        });
+                                //        _cb();
+                                //    }, _callback);
+                                //},
                                 function (_callback) {
                                     async.each(media.likes.data, function (like, _cb) {
-                                        tags[like.username] = true;
-                                        var words = like.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        tags.likes.push.apply(tags.likes, api.splitTextInTags(like.username));
+                                        tags.likes.push.apply(tags.likes, api.splitTextInTags(like.full_name));
+
+                                        //tags[like.username] = true;
+                                        //var words = like.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
                                 function (_callback) {
                                     async.each(media.users_in_photo, function (user, _cb) {
-                                        tags[user.user.username.toLowerCase()] = true;
-                                        var words = user.user.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(user.user.username));
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(user.user.full_name));
+
+                                        //tags[user.user.username.toLowerCase()] = true;
+                                        //var words = user.user.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
                                 function (_callback) {
                                     async.each(media.tags, function (tag, _cb) {
-                                        tags[tag.toLowerCase()] = true;
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(tag));
+
+                                        //tags[tag.toLowerCase()] = true;
                                         //tags[tag.toLowerCase()]=true;
                                         _cb();
                                     }, _callback);
@@ -517,7 +538,7 @@ module.exports = function (app, passport) {
                             ], function () {
                                 my_medias.push({
                                     'url': url,
-                                    'tags': Object.keys(tags),
+                                    'tags': tags, //Object.keys(tags),
                                     'source': 'Instagram'
                                 });
                                 callback();
