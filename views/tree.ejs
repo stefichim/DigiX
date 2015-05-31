@@ -55,31 +55,40 @@
 <script src="javascripts/sigma.min.js"></script>
 <script>
     var s = new sigma('container');
+
     s.graph.addNode({
         id: 'n0',
-        label: 'Hello',
-        x: 10,
-        y: 10,
-        size: 1,
+        label: 'nod1',
+        x: 0,
+        y: 0,
+        size: 3,
         color: '#f00'
     }).addNode({
         id: 'n1',
-        label: 'World',
-        x: 9,
-        y: 9,
-        size: 1,
-        color: '#00f'
+        label: 'nod2',
+        x: -1,
+        y: -1,
+        size: 3,
+        color: 'magenta'
     }).addNode({
         id: 'n2',
-        label: 'test',
-        x: 11,
-        y: 9,
-        size: 1,
-        color: '#00f'
-    }).addEdge({
+        label: 'nod3',
+        x: 1,
+        y: 1,
+        size: 3,
+        color: 'magenta'
+    });/*.addEdge({
         id: 'e0',
         source: 'n0',
         target: 'n1'
+    });
+    */
+
+    s.settings({
+        minNodeSize : 6,
+        maxNodeSize : 30,
+        labelThreshold : 0,
+        labelSize : "proportional"
     });
 
     s.refresh();

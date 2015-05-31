@@ -3,10 +3,10 @@ var request = require('../node_modules/request/index.js');
 // load up the user model
 var mongoose = require('mongoose');
 var User = require('../app/models/user');
-var muci = require('../app/models/user.js');
 var async = require('../node_modules/async');
 var privateInfo = require('../app/models/private');
 var qs = require('querystring');
+var api = require('../config/api');
 
 module.exports = function (app, passport) {
     app.get('/', function (req, res) {
@@ -31,6 +31,29 @@ module.exports = function (app, passport) {
             else {
                 res.render('tree', {
                     user: user
+                });
+            }
+        });
+    });
+
+    app.get('/refresh', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            if (err) console.log(err);
+            else {
+                api.unsyncFacebookPhotos(user, 1, function (user) {
+                    user.save(function (err) {
+                        if (err)
+                            throw  err;
+                        api.syncFacebookPhotos(user, function (user) {
+                            user.save(function (err) {
+                                if (err){
+                                    res.redirect('logout');
+                                    throw  err;
+                                }
+                                res.redirect('profile');
+                            });
+                        });
+                    })
                 });
             }
         });
@@ -704,24 +727,15 @@ module.exports = function (app, passport) {
     }));
 
     app.get('/deauth/facebook', isLoggedIn, function (req, res) {
-
-        User.findOne({'username': req.user.username}, function (err, user) {
-            // if there are any errors, return the error before anything else
+        User.findOne({'_id': req.user._id}, function (err, user) {
             if (err || !user)
                 return done(err);
 
-            user.facebook.token = undefined;
-
-            for (var i = user.photos.length - 1; i >= 0; i--) {
-                if (user.photos[i].source == 'Facebook') {
-                    user.photos.splice(i, 1);
-                }
-            }
-
-            user.save(function (err) {
-                if (err) {
-                    return done(null, user);
-                }
+            api.unsyncFacebookPhotos(user, 0, function (user) {
+                user.save(function (err) {
+                    if (err)
+                        throw  err;
+                })
             });
         });
 

@@ -9,11 +9,11 @@ var User = require('../app/models/user');
 
 var configAuth = require('./auth');
 
-var http = require("https");
-
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 var request = require('request');
+
+var api = require('./api');
 
 function getPicasaAlbums(profile_id, token, user, callback) {
     var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
@@ -167,7 +167,8 @@ module.exports = function (passport) {
 
         }));
 
-    passport.use(new FacebookStrategy({
+    /* Facebook */
+    passport.use('facebook', new FacebookStrategy({
             clientID        : configAuth.facebookAuth.clientID,
             clientSecret    : configAuth.facebookAuth.clientSecret,
             callbackURL     : configAuth.facebookAuth.callbackURL,
@@ -175,66 +176,33 @@ module.exports = function (passport) {
             passReqToCallback: true
         },
         function(req, token, refreshToken, profile, done) {
-                User.findOne({ 'username' : req.user.username }, function(err, user) {
-                    if (err || !user)
-                        return done(err);
+            // make the code asynchronous
 
-                    user.facebook.token = token;
+            process.nextTick(function () {
 
-                    var url = 'https://graph.facebook.com/' + profile.id + '/albums?access_token=' + token;
-                    console.log(url);
+                // try to find the user based on their google id
+                User.findOne({'_id': req.user._id}, function (err, user) {
+                        if (err)
+                            return done(err);
 
-                    http.get(url, function(res) {
-                        var body = '';
+                        if (user) {
+                            api.getFacebookAlbum(profile.id, token, user, function (user) {
+                                user.save(function (err) {
+                                    if (err)
+                                        throw  err;
 
-                        res.on('data', function(chunk) {
-                            body += chunk;
-                        });
+                                    console.log(user);
 
-                        res.on('end', function() {
-                            var albums = JSON.parse(body)['data'];
-                            for (var album_index = 0; album_index < albums.length; album_index++) {
-                                var photo_url = 'https://graph.facebook.com/' + albums[album_index].id + '/photos?access_token=' + token;
-                                console.dir(photo_url);
+                                    return done(null, user);
+                                })
 
-                                http.get(photo_url, function(res) {
-                                    var body = '';
+                            })
 
-                                    res.on('data', function(chunk) {
-                                        body += chunk;
-                                    });
-
-                                    res.on('end', function() {
-                                        var photos = JSON.parse(body)['data'];
-
-                                        for (var photo_index = 0; photo_index < photos.length; photo_index++) {
-                                            console.dir(photos[photo_index].source);
-
-                                            user.photos.push({'url': photos[photo_index].source, 'tags': ["facebook"], 'source': 'Facebook'});
-                                            user.save(function(err){
-                                                if(err) {
-                                                    console.dir(err);
-                                                }
-                                            });
-                                        }
-                                    });
-                                }).on('error', function(e) {
-                                    console.log("Got error: ", e);
-                                });
-                            }
-                        });
-                    }).on('error', function(e) {
-                        console.log("Got error: ", e);
-                    });
-
-                    user.save(function(err){
-                        if(err) {
-                            console.dir(err);
                         }
-                    });
-                });
-
-            return done(null, req.user);
+                    }
+                )
+                ;
+            })
         }));
 
     passport.use('google', new GoogleStrategy({
