@@ -23,16 +23,16 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
 
                     // Photo location
                     if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined){
-                        tags.push.apply(tags, photosJson['data'][j].place.name.toLowerCase().split(" "));
+                        tags.push.apply(tags, photosJson['data'][j].place.name.toLowerCase().split(" ."));
                     }
                     // Photo description
                     if (photosJson['data'][j].name){
-                        tags.push.apply(tags, photosJson['data'][j].name.toLowerCase().split(" "));
+                        tags.push.apply(tags, photosJson['data'][j].name.toLowerCase().split(" ."));
                     }
                     // Photo tags
                     if (photosJson['data'].tags != undefined && photosJson['data'].tags.data != undefined) {
                         for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++){
-                            tags.push.apply(tags, photosJson['data'].tags.data[k].name.toLowerCase().split(" "));
+                            tags.push.apply(tags, photosJson['data'].tags.data[k].name.toLowerCase().split(" ."));
                         }
                     }
 
