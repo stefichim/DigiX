@@ -15,61 +15,6 @@ var request = require('request');
 
 var api = require('./api');
 
-function getPicasaAlbums(profile_id, token, user, callback) {
-    var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
-
-    request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var albumsJson = JSON.parse(body);
-
-            if (albumsJson.feed.entry != undefined) {
-
-                getPicasaPhotos(new Array(), 0, albumsJson.feed.entry, profile_id, token, function (photos) {
-                    for (var i = user.photos.length - 1; i >= 0; i--) {
-                        if (user.photos[i].source == 'google') {
-                            user.photos.splice(i, 1);
-                        }
-                    }
-
-                    for (var i = 0; i < photos.length; i++) {
-                        user.photos.push(photos[i]);
-                    }
-
-                    user.google.user_id = profile_id;
-                    user.google.access_token = token;
-
-                    callback(user);
-                });
-            } else {
-                callback(user);
-            }
-        }
-    });
-}
-
-function getPicasaPhotos(photos, album_nr, album_array, profile_id, access_token, callback) {
-    if (album_nr < album_array.length) {
-        var album_url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '/albumid/' + album_array[album_nr]['gphoto$id']['$t'] + '?alt=json&v=2&access_token=' + access_token;
-        console.log(album_url);
-        request(album_url, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var photosJson = JSON.parse(body);
-
-                for (var j = 0; photosJson.feed.entry != undefined && j < photosJson.feed.entry.length; j++) {
-                    photos.push({
-                        url: photosJson.feed.entry[j].content.src,
-                        source: 'google'
-                    });
-                }
-
-                getPicasaPhotos(photos, album_nr + 1, album_array, profile_id, access_token, callback);
-            }
-        });
-    } else {
-        callback(photos);
-    }
-}
-
 // expose this function to our app using module.exports
 module.exports = function (passport) {
     passport.serializeUser(function (user, done) {
@@ -229,7 +174,7 @@ module.exports = function (passport) {
                             return done(err);
 
                         if (user) {
-                            getPicasaAlbums(profile.id, token, user, function (user) {
+                            api.getPicasaAlbums(profile.id, token, user, function (user) {
                                 user.save(function (err) {
                                     if (err)
                                         throw  err;
