@@ -39,23 +39,9 @@ module.exports = function(app, passport) {
                 });
             }
         });
-
-
-        //req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
-        //    if (err){
-        //        res.send("Error");
-        //    }
-        //    else {
-        //        cursor.toArray(function(err,result){
-        //            res.render('profile', {
-        //                user : req.user,
-        //                photos:result
-        //            });
-        //        })
-        //    }
-        //})
-
     });
+
+
 
     //----------------------------------------------------------
     //----------------------------------------------------------
@@ -63,8 +49,77 @@ module.exports = function(app, passport) {
     //----------------------------------------------------------
     //----------------------------------------------------------
 
+    app.get('/arbore', isLoggedIn, function(req,res){
+        console.log("ceva");
+       res.render('arbore.ejs',{});
+    });
+
+
+    function changeSons(node,type,user,res){
+        if(user.tree.length==0) changeMyself(user,node,res);
+        else {
+            for (i = 0; i < user.tree.length; i++) {
+                console.log(user.tree[i].myId);
+                console.log(node.relId);
+                if (user.tree[i].myId == node.relId) {
+                    console.log("pavaloi");
+                    if (type == "mother") user.tree[i].mother = String(node.myId);
+                    else user.tree[i].father = String(node.myId);
+                    changeMyself(user, node, res);
+                }
+            }
+        }
+    }
+
+    function changeMyself(user,node,res){
+        var found=false;
+        for (i = 0; i < user.tree.length; i++) {
+            if (user.tree[i].myId == node.myId) {
+                console.log("here");
+                user.tree[i].children.push(node.relId);
+                found=true;
+            }
+        }
+
+        if (found == false) {
+            user.tree.push({
+                'myId': node.myId,
+                'name': node.name,
+                'mother': "",
+                'father': "",
+                'myType': node.type,
+                'children': [node.child]
+            });
+            console.log("inserez");
+            console.log(user.tree[0]);
+
+            user.save(function (err) {
+                console.log(user);
+                console.log("ceva");
+                if (err) {
+                    console.dir(err);
+                }
+
+            });
+        }
+
+    }
+
+    app.post('/ajax', isLoggedIn, function(req,res) {
+
+        var node=req.body.node;
+        User.findOne({'username': req.user.username}, function(err,user){
+            changeSons(node,node.type,user,res);
+        });
+
+    });
+
+
+
+
 
     app.get('/sync/Flickr', isLoggedIn, function(req,res){
+        var tempUsername=req.user;
         var  oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -96,8 +151,8 @@ module.exports = function(app, passport) {
                             , token: perm_data.oauth_token
                             , token_secret: perm_data.oauth_token_secret
                         };
-
-                    var req = {
+                    console.log(perm_data);
+                    var credentials = {
                         username: tempUsername.username,
                         oauth_token: perm_data.oauth_token,
                         oauth_token_secret: perm_data.oauth_token_secret,
@@ -123,17 +178,18 @@ module.exports = function(app, passport) {
             user.flickr.nsid=credentials.nsid;
             user.save(function(err){
                 if(err) console.dir(err);
-                else next.redirect('/flickr/get/photos/?username='+credentials.username);
+                else //next.redirect('/flickr/get/photos/?username='+credentials.username);
+                     getFlickrPhotos(credentials.username, next);
             });
         });
 
     }
 
 
-    app.get('/flickr/get/photos', function(req,res){
 
-        User.findOne({username: req.query.username}, function(err,user){
-            if(err) {
+    function getFlickrPhotos(username, next) {
+        User.findOne({username: username}, function (err, user) {
+            if (err) {
                 console.dir(err);
                 return;
             }
@@ -142,21 +198,25 @@ module.exports = function(app, passport) {
                 , consumer_secret: privateInfo.flickr.consumer_secret
                 , token: user.flickr.token
                 , token_secret: user.flickr.token_secret
-            },url='https://api.flickr.com/services/rest'+'?'+'method=flickr.people.getPhotos'+
-                '&'+'user_id='+ user.flickr.nsid + '&' + 'privacy_filter=2' + '&format=json&nojsoncallback=1';
+            }, url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.people.getPhotos' +
+                '&' + 'user_id=' + user.flickr.nsid + '&format=json&nojsoncallback=1';
 
-            request.get({url:url, oauth:oauth}, function(e,r,body){
-                if(e) {
+
+            request.get({url: url, oauth: oauth}, function (e, r, body) {
+                if (e) {
                     console.dir(e);
                     return;
                 }
-                insertDatabase(req.query.username,JSON.parse(body),res);
+                insertDatabase(username, JSON.parse(body), next);
             });
+
+
         });
-    });
+    }
 
 
-    function insertDatabase(username,body,next){
+
+    function insertDatabase(username,body,res){
         var count=0;
         User.findOne({username: username}, function(err,user) {
             if (err) {
@@ -169,7 +229,7 @@ module.exports = function(app, passport) {
                 count:count,
                 user: user
             }
-            nextPicture(data, next);
+            nextPicture(data, res);
         });
 
     }
@@ -180,6 +240,7 @@ module.exports = function(app, passport) {
                 if(err) return;
             })
             return next.redirect('/flickr');
+
         }
         var rspPhoto=data.body.photos.photo[data.count];
 
@@ -204,14 +265,6 @@ module.exports = function(app, passport) {
             data.user.photos.push({'url': photoUrl, 'tags': realTags});
             data.count++;
             nextPicture(data,next);
-        });
-    }
-
-    function check(user ){
-        user.save(function(err){
-            if(err) {
-                console.dir(err);
-            }
         });
     }
 
