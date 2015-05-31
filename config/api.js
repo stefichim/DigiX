@@ -11,17 +11,37 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
             album_url = next;
         }
 
-        console.dir(album_url);
+        //console.dir(album_url);
 
         request(album_url, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var photosJson = JSON.parse(body);
-                console.dir(photosJson);
+                //console.dir(photosJson);
 
                 for (var j = 0; j < photosJson['data'].length; j++) {
+                    tags = [];
+
+                    // Photo location
+                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined){
+                        tags.push.apply(tags, photosJson['data'][j].place.name.toLowerCase().split(" "));
+                    }
+                    // Photo description
+                    if (photosJson['data'][j].name){
+                        tags.push.apply(tags, photosJson['data'][j].name.toLowerCase().split(" "));
+                    }
+                    // Photo tags
+                    if (photosJson['data'].tags != undefined && photosJson['data'].tags.data != undefined) {
+                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++){
+                            tags.push.apply(tags, photosJson['data'].tags.data[k].name.toLowerCase().split(" "));
+                        }
+                    }
+
+                    console.dir(tags);
+
                     photos.push({
                         url: photosJson['data'][j].source,
-                        source: 'facebook'
+                        source: 'facebook',
+                        tags: tags
                     });
                 }
 
