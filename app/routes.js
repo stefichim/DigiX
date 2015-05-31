@@ -36,27 +36,30 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.get('/refresh', isLoggedIn, function (req, res) {
+    app.get('/refresh', isLoggedIn, function (req, res, next) {
         User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
             else {
-                api.unsyncFacebookPhotos(user, 1, function (user) {
-                    user.save(function (err) {
-                        if (err)
-                            throw  err;
-                        api.syncFacebookPhotos(user, function (user) {
-                            user.save(function (err) {
-                                if (err){
-                                    res.redirect('logout');
-                                    throw  err;
-                                }
-                                res.redirect('profile');
+                if (user.facebook.token != undefined || user.facebook.profile_id != undefined){
+                    api.unsyncFacebookPhotos(user, 1, function (user) {
+                        user.save(function (err) {
+                            if (err)
+                                throw  err;
+                            api.syncFacebookPhotos(user, function (user) {
+                                user.save(function (err) {
+                                    if (err){
+                                        res.redirect('logout');
+                                        throw  err;
+                                    }
+                                    res.redirect('profile');
+                                });
                             });
-                        });
-                    })
-                });
+                        })
+                    });
+                }
             }
         });
+        next();
     });
 
     app.get('/profile', isLoggedIn, function (req, res) {
@@ -108,20 +111,130 @@ module.exports = function (app, passport) {
         });
     });
 
-        //req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
-        //    if (err){
-        //        res.send("Error");
-        //    }
-        //    else {
-        //        cursor.toArray(function(err,result){
-        //            res.render('profile', {
-        //                user : req.user,
-        //                photos:result
-        //            });
-        //        })
-        //    }
-        //})
+    app.get('/profile/previous', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
 
+            user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/profile');
+
+        });
+    });
+
+    app.get('/profile/button', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            user.current_picture_index = 0;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/profile');
+        });
+    });
+
+    app.get('/search_photos_button', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            user.current_picture_search_index = 0;
+            user.searched_photos.length = 0;
+
+            var queryString = req.query.searched_text;
+            if (queryString.length == 0) {
+                user.current_picture_index = -1;
+                user.save(function (err) {
+                    if (err) {
+                        console.dir(err);
+                    }
+                });
+                res.redirect('/profile');
+            }
+            else {
+                var words = queryString.toLowerCase().split(" ");
+
+                var i;
+                for (i = 0; i < user.photos.length; i++) {
+                    var tags = user.photos[i].tags.filter(function (n) {
+                        return words.indexOf(n) != -1
+                    });
+                    var photo = {
+                        url: user.photos[i].url,
+                        score: tags.length
+                    }
+
+                    user.searched_photos.push(photo);
+                }
+
+                user.searched_photos.sort(function (a, b) {
+                    return parseFloat(b.score) - parseFloat(a.score)
+                });
+
+                user.save(function (err) {
+                    if (err) {
+                        console.dir(err);
+                    }
+                });
+                res.redirect('/search_photos');
+            }
+        });
+    });
+
+    app.get('/search_photos', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            var my_pictures = [];
+            var previousButtonVisible = 'visible';
+            var nextButtonVisible = 'visible';
+
+            var i;
+            for (i = parseInt(user.current_picture_search_index); i < user.searched_photos.length && i < (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage); i++) {
+                my_pictures.push(user.searched_photos[i].url);
+            }
+
+
+
+            if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
+                previousButtonVisible = 'invisible';
+            }
+            if (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage > (user.searched_photos.length - 1)) {
+                nextButtonVisible = 'invisible';
+            }
+
+            res.render('search_photos', {
+                user: user,
+                photos: my_pictures,
+                previousButtonVisible: previousButtonVisible,
+                nextButtonVisible: nextButtonVisible
+            });
+        });
+    });
+
+    app.get('/search_photos/next', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            user.current_picture_search_index = parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/search_photos');
+        });
+    });
+
+    app.get('/search_photos/previous', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+
+
+            user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/profile');
+        });
     });
 
     //----------------------------------------------------------
@@ -130,14 +243,15 @@ module.exports = function (app, passport) {
     //----------------------------------------------------------
     //----------------------------------------------------------
 
-    app.get('/arbore', isLoggedIn, function(req,res){
+
+    app.get('/arbore', isLoggedIn, function (req, res) {
         console.log("ceva");
-       res.render('arbore.ejs',{});
+        res.render('arbore.ejs', {});
     });
 
 
-    function changeSons(node,type,user,res){
-        if(user.tree.length==0) changeMyself(user,node,res);
+    function changeSons(node, type, user, res) {
+        if (user.tree.length == 0) changeMyself(user, node, res);
         else {
             for (i = 0; i < user.tree.length; i++) {
                 console.log(user.tree[i].myId);
@@ -152,13 +266,13 @@ module.exports = function (app, passport) {
         }
     }
 
-    function changeMyself(user,node,res){
-        var found=false;
+    function changeMyself(user, node, res) {
+        var found = false;
         for (i = 0; i < user.tree.length; i++) {
             if (user.tree[i].myId == node.myId) {
                 console.log("here");
                 user.tree[i].children.push(node.relId);
-                found=true;
+                found = true;
             }
         }
 
@@ -186,22 +300,34 @@ module.exports = function (app, passport) {
 
     }
 
-    app.post('/ajax', isLoggedIn, function(req,res) {
+    app.post('/ajax', isLoggedIn, function (req, res) {
 
-        var node=req.body.node;
-        User.findOne({'username': req.user.username}, function(err,user){
-            changeSons(node,node.type,user,res);
+        var node = req.body.node;
+        User.findOne({'username': req.user.username}, function (err, user) {
+            changeSons(node, node.type, user, res);
         });
 
     });
 
+    app.get('/unsync/Flickr', isLoggedIn, function(req,res){
+        console.log("unsync");
+        User.findOne({username: req.user.username}, function (err, user) {
+            if (err || !user)
+                return done(err);
+            api.unsyncFlickr(user, function (user) {
+                console.log("bere");
+                user.save(function (err) {
+                    if (err)
+                        throw  err;
+                    res.redirect('/flickr');
+                })
+            });
+        });
+    });
 
-
-
-
-    app.get('/sync/Flickr', isLoggedIn, function(req,res){
+    app.get('/sync/Flickr', isLoggedIn, function (req, res) {
         var tempUsername=req.user;
-        var  oauth = {
+        var oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
                 , consumer_secret: privateInfo.flickr.consumer_secret
@@ -224,19 +350,11 @@ module.exports = function (app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
-       
-                request.post({url:url, oauth:oauth}, function (e, r, body) {
 
                 request.post({url: url, oauth: oauth}, function (e, r, body) {
 
-                    var perm_data = qs.parse(body)
-                        , oauth =
-                        { consumer_key: privateInfo.flickr.consumer_key
-                            , consumer_secret: privateInfo.flickr.consumer_secret
-                            , token: perm_data.oauth_token
-                            , token_secret: perm_data.oauth_token_secret
-                        };
-                    console.log(perm_data);
+                    var perm_data = qs.parse(body);
+
                     var credentials = {
                         username: tempUsername.username,
                         oauth_token: perm_data.oauth_token,
@@ -257,102 +375,19 @@ module.exports = function (app, passport) {
     function updateFlickrCredentials(credentials, next) {
 
 
-        User.findOne({'username': credentials.username}, function(err,user){
-            user.flickr.token=credentials.oauth_token;
-            user.flickr.token_secret=credentials.oauth_token_secret;
-            user.flickr.nsid=credentials.nsid;
-            user.save(function(err){
-                if(err) console.dir(err);
-                else //next.redirect('/flickr/get/photos/?username='+credentials.username);
-                     getFlickrPhotos(credentials.username, next);
+        User.findOne({'username': credentials.username}, function (err, user) {
+            user.flickr.token = credentials.oauth_token;
+            user.flickr.token_secret = credentials.oauth_token_secret;
+            user.flickr.nsid = credentials.nsid;
+            user.save(function (err) {
+                if (err) console.dir(err);
+                else api.getFlickrPhotos(credentials.username,next);
             });
         });
 
     }
 
 
-    app.get('/flickr/get/photos', function(req,res){
-
-    function getFlickrPhotos(username, next) {
-        User.findOne({username: username}, function (err, user) {
-            if (err) {
-                console.dir(err);
-                return;
-            }
-            var oauth = {
-                consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret
-                , token: user.flickr.token
-                , token_secret: user.flickr.token_secret
-            }, url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.people.getPhotos' +
-                '&' + 'user_id=' + user.flickr.nsid + '&format=json&nojsoncallback=1';
-
-
-            request.get({url: url, oauth: oauth}, function (e, r, body) {
-                if (e) {
-                    console.dir(e);
-                    return;
-                }
-                insertDatabase(req.query.username,JSON.parse(body),res);
-            });
-
-
-        });
-    }
-
-
-
-    function insertDatabase(username,body,res){
-        var count=0;
-        User.findOne({username: username}, function(err,user) {
-            if (err) {
-                console.dir(err);
-                return;
-            }
-            var data = {
-                username: username,
-                body: body,
-                count: count,
-                user: user
-            }
-            nextPicture(data, res);
-        });
-
-    }
-    function nextPicture(data,next){
-        var total=data.body.photos.total;
-        if(data.count==total) {
-            data.user.save(function(err){
-                if(err) return;
-            })
-            return next.redirect('/flickr');
-
-        }
-        var rspPhoto=data.body.photos.photo[data.count];
-
-        var photoUrl='https://farm'+rspPhoto.farm + '.staticflickr.com/'
-            + rspPhoto.server + '/'+ rspPhoto.id+'_'+rspPhoto.secret
-            +'.jpg';
-        var url='https://api.flickr.com/services/rest'+'?'+'method=flickr.tags.getListPhoto'+
-                '&'+'photo_id='+ rspPhoto.id + '&format=json&nojsoncallback=1'
-            ,oauth = {
-                consumer_key: privateInfo.flickr.consumer_key
-                ,consumer_secret: privateInfo.flickr.consumer_secret};
-        request.get({url:url, oauth:oauth}, function(e,r,body){
-            if(e) {
-                console.dir(e);
-                return;
-            }
-            var tags=JSON.parse(body);
-            var realTags = [];
-            for(j=0;j<tags.photo.tags.tag.length;j++){
-                realTags.push(tags.photo.tags.tag[j].raw);
-            }
-            data.user.photos.push({'url': photoUrl, 'tags': realTags});
-            data.count++;
-            nextPicture(data,next);
-        });
-    }
 
 
     //----------------------------------------------------------
