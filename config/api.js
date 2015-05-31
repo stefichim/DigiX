@@ -1,5 +1,8 @@
 var request = require('request');
-
+var User = require('../app/models/user');
+var privateInfo = require('../app/models/private');
+var qs = require('querystring');
+/* Facebook */
 /* Facebook */
 function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
     if (album_index < albums.length) {
@@ -101,9 +104,103 @@ function syncFacebookPhotos(user, callback) {
     });
 };
 
+
+
+function getFlickrPhotos(username, res){
+
+    User.findOne({username: username}, function (err, user) {
+        if (err) {
+            console.dir(err);
+            return;
+        }
+        var oauth = {
+            consumer_key: privateInfo.flickr.consumer_key
+            , consumer_secret: privateInfo.flickr.consumer_secret
+            , token: user.flickr.token
+            , token_secret: user.flickr.token_secret
+        }, url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.people.getPhotos' +
+            '&' + 'user_id=' + user.flickr.nsid + '&format=json&nojsoncallback=1';
+
+        request.get({url: url, oauth: oauth}, function (e, r, body) {
+            if (e) {
+                console.dir(e);
+                return;
+            }
+            console.log("pava");
+            console.dir(body);
+            insertDatabaseFlickr(username, JSON.parse(body), res);
+        });
+    });
+};
+function insertDatabaseFlickr(username, body, next) {
+    var count = 0;
+    User.findOne({username: username}, function (err, user) {
+        if (err) {
+            console.dir(err);
+            return;
+        }
+        var data = {
+            username: username,
+            body: body,
+            count: count,
+            user: user
+        }
+        nextPictureFlickr(data, next);
+    });
+
+}
+function nextPictureFlickr(data, next) {
+    var total = data.body.photos.total;
+    if (data.count == total) {
+        data.user.save(function (err) {
+            if (err) return;
+        })
+        return next.redirect('/flickr');
+    }
+    var rspPhoto = data.body.photos.photo[data.count];
+
+    var photoUrl = 'https://farm' + rspPhoto.farm + '.staticflickr.com/'
+        + rspPhoto.server + '/' + rspPhoto.id + '_' + rspPhoto.secret
+        + '.jpg';
+    var url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.tags.getListPhoto' +
+            '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1'
+        , oauth = {
+            consumer_key: privateInfo.flickr.consumer_key
+            , consumer_secret: privateInfo.flickr.consumer_secret
+        };
+    request.get({url: url, oauth: oauth}, function (e, r, body) {
+        if (e) {
+            console.dir(e);
+            return;
+        }
+        var tags = JSON.parse(body);
+        var realTags = [];
+        for (j = 0; j < tags.photo.tags.tag.length; j++) {
+            realTags.push(tags.photo.tags.tag[j].raw);
+        }
+        data.user.photos.push({'url': photoUrl,'source':'flickr', 'tags': realTags});
+        data.count++;
+        nextPictureFlickr(data, next);
+    });
+}
+function unsyncFlickr(user, callback ){
+    for (var i = user.photos.length - 1; i >= 0; i--) {
+        if (user.photos[i].source == 'flickr') {
+            user.photos.splice(i, 1);
+        }
+    }
+    user.flickr.nsid=undefined;
+    user.flickr.token=undefined;
+    user.flickr.token_secret=undefined;
+    callback(user);
+}
+
 module.exports = {
     getFacebookPhoto : getFacebookPhoto,
     getFacebookAlbum : getFacebookAlbum,
     unsyncFacebookPhotos : unsyncFacebookPhotos,
-    syncFacebookPhotos : syncFacebookPhotos
+    syncFacebookPhotos : syncFacebookPhotos,
+
+    getFlickrPhotos: getFlickrPhotos,
+    unsyncFlickr: unsyncFlickr
 };
