@@ -110,7 +110,7 @@ module.exports = function (passport) {
                         newUser.email = req.body.email;
                         newUser.first_name = req.body.first_name;
                         newUser.last_name = req.body.last_name;
-                        newUser.current_picture_index = '-1';
+                        newUser.current_picture_index = '0';
                         // set the user's local credentials
                         /* newUser.local.username   = username;
                          newUser.local.password   = newUser.generateHash(password);
@@ -156,7 +156,7 @@ module.exports = function (passport) {
                     return done(null, false, req.flash('message', 'Oops! Wrong password.')); // create the loginMessage and save it to session as flashdata
 
                 // all is well, return successful user
-                user.current_picture_index = '-1';
+                user.current_picture_index = '0';
                 user.save(function (err) {
                     if (err) {
                         console.dir(err);
