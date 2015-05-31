@@ -37,30 +37,27 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.get('/refresh', isLoggedIn, function (req, res, next) {
+    app.get('/refresh', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
             else {
-                if (user.facebook.token != undefined || user.facebook.profile_id != undefined){
-                    api.unsyncFacebookPhotos(user, 1, function (user) {
-                        user.save(function (err) {
-                            if (err)
-                                throw  err;
-                            api.syncFacebookPhotos(user, function (user) {
-                                user.save(function (err) {
-                                    if (err){
-                                        res.redirect('logout');
-                                        throw  err;
-                                    }
-                                    res.redirect('profile');
-                                });
+                api.unsyncFacebookPhotos(user, 1, function (user) {
+                    user.save(function (err) {
+                        if (err)
+                            throw  err;
+                        api.syncFacebookPhotos(user, function (user) {
+                            user.save(function (err) {
+                                if (err){
+                                    res.redirect('logout');
+                                    throw  err;
+                                }
+                                res.redirect('profile');
                             });
-                        })
-                    });
-                }
+                        });
+                    })
+                });
             }
         });
-        next();
     });
 
     app.get('/profile', isLoggedIn, function (req, res) {
