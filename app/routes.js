@@ -45,21 +45,21 @@ module.exports = function (app, passport) {
                 var nextButtonVisible = 'visible';
 
                 var i;
-                for (i = parseInt(user.current_picture_index) + 1; i < user.photos.length && i <= (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++) {
+                for (i = parseInt(user.current_picture_index); i < user.photos.length && i < (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                     my_pictures.push(user.photos[i].url);
                 }
 
-                user.current_picture_index = parseInt(user.current_picture_index) + my_pictures.length;
-                user.save(function (err) {
-                    if (err) {
-                        console.dir(err);
-                    }
-                });
+                //user.current_picture_index = parseInt(user.current_picture_index) + my_pictures.length;
+                //user.save(function (err) {
+                //    if (err) {
+                //        console.dir(err);
+                //    }
+                //});
 
                 if (parseInt(user.current_picture_index) < privateInfo.profile.numberOfPicturesPage) {
                     previousButtonVisible = 'invisible';
                 }
-                if (parseInt(user.current_picture_index) >= (user.photos.length - 1)) {
+                if (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage > (user.photos.length - 1)) {
                     nextButtonVisible = 'invisible';
                 }
 
@@ -71,35 +71,11 @@ module.exports = function (app, passport) {
                 });
             }
         });
-
-        //req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
-        //    if (err){
-        //        res.send("Error");
-        //    }
-        //    else {
-        //        cursor.toArray(function(err,result){
-        //            res.render('profile', {
-        //                user : req.user,
-        //                photos:result
-        //            });
-        //        })
-        //    }
-        //})
     });
 
     app.get('/profile/next', isLoggedIn, function (req, res) {
-        res.redirect('/profile');
-    });
-
-    app.get('/profile/previous', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
-            if ((parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
-                user.current_picture_index = parseInt(user.current_picture_index) - (parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage;
-                user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
-            } else {
-                user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
-                user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
-            }
+            user.current_picture_index = parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage;
             user.save(function (err) {
                 if (err) {
                     console.dir(err);
@@ -109,9 +85,36 @@ module.exports = function (app, passport) {
         });
     });
 
+    app.get('/profile/previous', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            //if ((parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
+            //    user.current_picture_index = parseInt(user.current_picture_index) - (parseInt(user.current_picture_index) + 1) % privateInfo.profile.numberOfPicturesPage;
+            //    user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            //} else {
+            //    user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            //    user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            //}
+            //user.save(function (err) {
+            //    if (err) {
+            //        console.dir(err);
+            //    }
+            //});
+            //res.redirect('/profile');
+
+            user.current_picture_index = parseInt(user.current_picture_index) - privateInfo.profile.numberOfPicturesPage;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
+            res.redirect('/profile');
+
+        });
+    });
+
     app.get('/profile/button', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
-            user.current_picture_index = -1;
+            user.current_picture_index = 0;
             user.save(function (err) {
                 if (err) {
                     console.dir(err);
@@ -123,7 +126,7 @@ module.exports = function (app, passport) {
 
     app.get('/search_photos_button', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
-            user.current_picture_search_index = -1;
+            user.current_picture_search_index = 0;
             user.searched_photos.length = 0;
 
             var queryString = req.query.searched_text;
@@ -173,21 +176,21 @@ module.exports = function (app, passport) {
             var nextButtonVisible = 'visible';
 
             var i;
-            for (i = parseInt(user.current_picture_search_index) + 1; i < user.searched_photos.length && i <= (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage); i++) {
+            for (i = parseInt(user.current_picture_search_index); i < user.searched_photos.length && i < (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                 my_pictures.push(user.searched_photos[i].url);
             }
 
-            user.current_picture_search_index = parseInt(user.current_picture_search_index) + my_pictures.length;
-            user.save(function (err) {
-                if (err) {
-                    console.dir(err);
-                }
-            });
+            //user.current_picture_search_index = parseInt(user.current_picture_search_index) + my_pictures.length;
+            //user.save(function (err) {
+            //    if (err) {
+            //        console.dir(err);
+            //    }
+            //});
 
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
             }
-            if (parseInt(user.current_picture_search_index) >= (user.searched_photos.length - 1)) {
+            if (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage > (user.searched_photos.length - 1)) {
                 nextButtonVisible = 'invisible';
             }
 
@@ -202,30 +205,44 @@ module.exports = function (app, passport) {
 
     app.get('/search_photos/next', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
+            user.current_picture_search_index = parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage;
+            user.save(function (err) {
+                if (err) {
+                    console.dir(err);
+                }
+            });
             res.redirect('/search_photos');
         });
     });
 
     app.get('/search_photos/previous', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
-            var my_pictures = [];
-            var previousButtonVisible = 'visible';
-            var nextButtonVisible = 'visible';
+            //var my_pictures = [];
+            //var previousButtonVisible = 'visible';
+            //var nextButtonVisible = 'visible';
+            //
+            //if ((parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
+            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - (parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage;
+            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+            //} else {
+            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+            //    user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
+            //}
+            //user.save(function (err) {
+            //    if (err) {
+            //        console.dir(err);
+            //    }
+            //});
+            //
+            //res.redirect('/search_photos');
 
-            if ((parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage) {
-                user.current_picture_search_index = parseInt(user.current_picture_search_index) - (parseInt(user.current_picture_search_index) + 1) % privateInfo.profile.numberOfPicturesPage;
-                user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
-            } else {
-                user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
-                user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
-            }
+            user.current_picture_search_index = parseInt(user.current_picture_search_index) - privateInfo.profile.numberOfPicturesPage;
             user.save(function (err) {
                 if (err) {
                     console.dir(err);
                 }
             });
-
-            res.redirect('/search_photos');
+            res.redirect('/profile');
         });
     });
 
