@@ -25,6 +25,17 @@ module.exports = function (app, passport) {
         failureFlash: true
     }));
 
+    app.get('/tree', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+            if (err) console.log(err);
+            else {
+                res.render('tree', {
+                    user: user
+                });
+            }
+        });
+    });
+
     app.get('/profile', isLoggedIn, function (req, res) {
         User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
@@ -61,7 +72,6 @@ module.exports = function (app, passport) {
             }
         });
 
-
         //req.db.collection(req.user.username).find({},{'_id':false,'tags':false},function(err, cursor){
         //    if (err){
         //        res.send("Error");
@@ -75,7 +85,6 @@ module.exports = function (app, passport) {
         //        })
         //    }
         //})
-
     });
 
     app.get('/profile/next', isLoggedIn, function (req, res) {
