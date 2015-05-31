@@ -32,7 +32,15 @@ var userSchema = mongoose.Schema({
     },
     photos: [{
         url: String,
-        tags: [String],
+        tags: {
+            description: [String],
+            comments: {
+                author: [String],
+                content: [String]
+            },
+            likes: [String],
+            tagged: [String]
+        },
         source: String
     }],
     searched_photos: [{
@@ -45,11 +53,10 @@ var userSchema = mongoose.Schema({
         mother: String,
         father: String,
         myType: String,
-        children: [ String ]
+        children: [String]
     }]
 
 });
-
 
 
 // methods ======================
