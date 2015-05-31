@@ -62,8 +62,17 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
                     });
                 }
 
-                if (photosJson['paging'].next != undefined) {
-                    getFacebookPhoto(photos, album_index, albums, token, photosJson['paging'].next, callback);
+                console.dir(photosJson);
+
+
+                if (photosJson['paging'] != undefined) {
+                    if (photosJson['paging'].next != undefined)
+                    {
+                        getFacebookPhoto(photos, album_index, albums, token, photosJson['paging'].next, callback);
+                    }
+                    else {
+                        getFacebookPhoto(photos, album_index + 1, albums, token, "", callback);
+                    }
                 }
                 else {
                     getFacebookPhoto(photos, album_index + 1, albums, token, "", callback);

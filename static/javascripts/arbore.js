@@ -12,28 +12,24 @@ function addParent(form){
     var name=document.getElementById("parentText").value;
     var selectedOption = select.options[select.selectedIndex].value;
     var tempNode={
-        myId: String,
-        relId: String,
+        type: String,
         name: String,
-        mother: String,
-        father: String,
-        child: String,
-        type: String
+        fromID: String,
+        myID: String
     };
     if(selectedOption=="mother") addMother(selectedID,name,tempNode);
     else if(selectedOption=="father") addFather(selectedID,name,tempNode);
     else alert("Oups");
 
     $.ajax({
-        url: '/ajax',
-        type: 'post', // performing a POST request
+        url: '/get/father',
+        type: 'get',
         data : {
-            node : tempNode
+            myID: "23"
         },
         dataType: 'json',
-        success: function(data)
-        {
-            // etc...
+        success: function(data) {
+
         }
     });
 }
@@ -45,11 +41,10 @@ function addMother(myID,name,temp){
     newNode.style.top="-50px";
     newNode.style.left="-50px";
 
-    temp.myId=lastID;
-    temp.relId=selectedID;
-    temp.name=newNode.innerHTML;
-    temp.child=myID;
     temp.type="mother";
+    temp.myID=lastID;
+    temp.fromID=selectedID;
+    temp.name=newNode.innerHTML;
 
     lastID++;
     return temp;
@@ -62,31 +57,15 @@ function addFather(myID,name,temp){
     newNode.style.top="-50px";
     newNode.style.left="70px";
 
-    temp.myId=lastID;
-    temp.relId=selectedID;
-    temp.name=newNode.innerHTML;
-    temp.child=myID;
     temp.type="father";
+    temp.myID=lastID;
+    temp.fromID=selectedID;
+    temp.name=newNode.innerHTML;
 
     lastID++;
     return temp;
 }
 
-
-function sendData(){
-    var temp=node;
-    $.ajax({
-        url: '/ajax',
-        type: 'post', // performing a POST request
-        data : {
-            data1 : 'value' // will be accessible in $_POST['data1']
-        },
-        dataType: 'json',
-        success: function(data) {
-            console.log(data);
-        }
-    });
-}
 
 function selectThis(e,node){
 
