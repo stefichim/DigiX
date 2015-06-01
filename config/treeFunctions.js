@@ -8,7 +8,7 @@ function nephew(user){
     var result=[];
     for(i=0; i<user.tree.length;i++){
         for(j=0;j<user.tree.length;j++){
-            if(user.tree[i].genre=="male" && (user.tree[j].myID==user.tree[i].mother || user.tree[j].myID==user.tree[i].father) && (user.tree[j].mother=="root" || user.tree[j].father=="root"))
+            if(user.tree[i].genre=="male" && (user.tree[j].myID==user.tree[i].mother || user.tree[j].myID==user.tree[i].father) && (user.tree[j].mother=="0" || user.tree[j].father=="0"))
                 result.push(user.tree[i].myID);
         }
     }
@@ -18,7 +18,7 @@ function niece(user){
     var result=[];
     for(i=0; i<user.tree.length;i++){
         for(j=0;j<user.tree.length;j++){
-            if(user.tree[i].genre=="female" && (user.tree[j].myID==user.tree[i].mother || user.tree[j].myID==user.tree[i].father) && (user.tree[j].mother=="root" || user.tree[j].father=="root"))
+            if(user.tree[i].genre=="female" && (user.tree[j].myID==user.tree[i].mother || user.tree[j].myID==user.tree[i].father) && (user.tree[j].mother=="0" || user.tree[j].father=="0"))
                 result.push(user.tree[i].myID);
         }
     }
@@ -28,14 +28,14 @@ function niece(user){
 function son(user){
     var result=[];
     for(i=0;i<user.tree.length;i++){
-        if(user.tree[i].genre=="male" && ("root"==user.tree[i].mother || "root"==user.tree[i].father)) result.push(user.tree[i].myID);
+        if(user.tree[i].genre=="male" && ("0"==user.tree[i].mother || "0"==user.tree[i].father)) result.push(user.tree[i].myID);
     }
     return convert(result,user);
 }
 function daughter(user){
     var result=[];
     for(i=0;i<user.tree.length;i++){
-        if(user.tree[i].genre=="female" && ("root"==user.tree[i].mother || "root"==user.tree[i].father)) result.push(user.tree[i].myID);
+        if(user.tree[i].genre=="female" && ("0"==user.tree[i].mother || "0"==user.tree[i].father)) result.push(user.tree[i].myID);
     }
     return convert(result,user);
 }
@@ -43,7 +43,7 @@ function daughter(user){
 function sister(user){
     var result=[];
     var tempNode;
-    for(i=0;i<user.tree.length;i++) if(user.tree[i].myID=="root") tempNode=user.tree[i];
+    for(i=0;i<user.tree.length;i++) if(user.tree[i].myID=="0") tempNode=user.tree[i];
     for(i=0;i<user.tree.length;i++){
         if(user.tree[i].gender=="female" && (user.tree[i].mother == tempNode.mother || user.tree[i].father==tempNode.father)) result.push(user.tree[i].myID);
     }
@@ -52,7 +52,7 @@ function sister(user){
 function brother(user){
     var result=[];
     var tempNode;
-    for(i=0;i<user.tree.length;i++) if(user.tree[i].myID=="root") tempNode=user.tree[i];
+    for(i=0;i<user.tree.length;i++) if(user.tree[i].myID=="0") tempNode=user.tree[i];
     for(i=0;i<user.tree.length;i++){
         if(user.tree[i].gender=="male" && (user.tree[i].mother == tempNode.mother || user.tree[i].father==tempNode.father)) result.push(user.tree[i].myID);
     }
@@ -62,14 +62,14 @@ function brother(user){
 function mother(user){
     var result= [];
     for(i=0;i<user.tree.length;i++){
-        if(user.tree[i].myID=="root" && user.tree[i].mother!="") result.push(user.tree[i].mother);
+        if(user.tree[i].myID=="0" && user.tree[i].mother!="") result.push(user.tree[i].mother);
     }
     return convert(result,user);
 }
 function father(user){
     var result= [];
     for(i=0;i<user.tree.length;i++){
-        if(user.tree[i].myID=="root" && user.tree[i].father!="") result.push(user.tree[i].father);
+        if(user.tree[i].myID=="0" && user.tree[i].father!="") result.push(user.tree[i].father);
     }
     return convert(result,user);
 }
@@ -78,7 +78,7 @@ function father(user){
 function grandma(user){
     var tempNode;
     var result = []
-    for(i=0;i<user.tree.length;i++) if(user.tree[i].myID=="root") tempNode=user.tree[i];
+    for(i=0;i<user.tree.length;i++) if(user.tree[i].myID=="0") tempNode=user.tree[i];
 
     for(i=0;i<user.tree.length;i++)
         if((user.tree[i].myID==tempNode.father || user.tree[i].myID==tempNode.mother) && user.tree[i].mother!="") result.push(user.tree[i].mother);
@@ -88,7 +88,7 @@ function grandpa(user){
     var tempNode;
     var result = [];
     for(i=0;i<user.tree.length;i++)
-        if(user.tree[i].myID=="root") tempNode=user.tree[i];
+        if(user.tree[i].myID=="0") tempNode=user.tree[i];
 
     for(i=0;i<user.tree.length;i++)
         if((user.tree[i].myID==tempNode.father || user.tree[i].myID==tempNode.mother) && user.tree[i].father!="") result.push(user.tree[i].father);

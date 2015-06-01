@@ -289,8 +289,11 @@ module.exports = function (app, passport) {
     });
 
 
+
+
     app.post('/ajax', isLoggedIn, function (req, res) {
         var node = req.body.node;
+        console.log(node);
         User.findOne({'username': req.user.username}, function (err, user) {
             updateTree(user, node);
         });
@@ -298,7 +301,6 @@ module.exports = function (app, passport) {
     });
 
     app.get('/get/root', isLoggedIn, function (req, res) {
-        console.log("AJAX");
         var tree = req.user.tree;
         var root;
         for (i = 0; i < tree.length; i++) {
@@ -345,49 +347,58 @@ module.exports = function (app, passport) {
 
     function updateTree(user, node, res) {
         var found = false;
-        for (i = 0; i < user.tree.length; i++) {
-            if (found == true) return;
-            if (user.tree[i].myID = node.fromID) {
-                var newNode = {
-                    myID: node.myID,
-                    name: node.name,
-                    mother: "",
-                    father: "",
-                    genre: ""
-                }
-                if (node.type == "mother") {
-                    user.tree[i].mother = node.myID;
-                    newNode.genre = "female";
-                    user.tree.push(newNode);
-                    found = true;
-                }
-                else if (node.type == "father") {
-                    user.tree[i].father = node.myID;
-                    newNode.genre = "male";
-                    user.tree.push(newNode);
-                    found = true;
-                }
-                else if (node.type == "girl") {
-                    newNode.mother = node.fromID;
-                    newNode.genre = "female";
-                    user.tree.push(newNode);
-                    found = true;
-                }
-                else if (node.type == "boy") {
-                    newNode.father = node.fromID;
-                    newNode.genre = "male";
-                    user.tree.push(newNode);
-                    found = true;
-                }
 
-            }
-            if (found == true) {
-                user.save(function (err) {
-                    if (err) console.dir(err);
-
-                })
-            }
+        if(node.type=="root") {
+            user.tree.push({ 'myID':node.myID, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
+            user.save(function (err) {
+                if (err) console.dir(err);
+            })
+            return;
         }
+
+            for (i = 0; i < user.tree.length; i++) {
+                if (found == true) return;
+                if (user.tree[i].myID = node.fromID) {
+                    var newNode = {
+                        myID: node.myID,
+                        name: node.name,
+                        mother: "",
+                        father: "",
+                        genre: ""
+                    }
+                    if (node.type == "mother") {
+                        user.tree[i].mother = node.myID;
+                        newNode.genre = "female";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+                    else if (node.type == "father") {
+                        user.tree[i].father = node.myID;
+                        newNode.genre = "male";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+                    else if (node.type == "girl") {
+                        newNode.mother = node.fromID;
+                        newNode.genre = "female";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+                    else if (node.type == "boy") {
+                        newNode.father = node.fromID;
+                        newNode.genre = "male";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+
+                }
+                if (found == true) {
+                    user.save(function (err) {
+                        if (err) console.dir(err);
+
+                    })
+                }
+            }
 
     }
 
