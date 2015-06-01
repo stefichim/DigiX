@@ -54,15 +54,15 @@ module.exports = function (app, passport) {
 
                                 refreshInstagramPhotos(req, res, user, function (user) {
                                     api.getPicasaAlbums(user.google.user_id, user.google.access_token, user, function (user) {
-                                        res.redirect('profile');
+                                        api.getFlickrPhotos(req.user.username, function() {
+                                            res.redirect('profile');
+                                        });
                                     });
                                 })
                             });
                         });
                     })
                 });
-
-
             }
         });
     });
@@ -458,7 +458,9 @@ module.exports = function (app, passport) {
                         oauth_token_secret: perm_data.oauth_token_secret,
                         nsid: perm_data.user_nsid
                     };
-                    if(credentials.nsid!=undefined) updateFlickrCredentials(credentials, res);
+                    if(credentials.nsid!=undefined) updateFlickrCredentials(credentials, function(){
+                        res.redirect('/flickr');
+                    });
                     else res.redirect('/profile');
 
                 });

@@ -146,13 +146,22 @@ function syncFacebookPhotos(user, callback) {
 };
 
 
-function getFlickrPhotos(username, res) {
+function getFlickrPhotos(username, callback) {
 
     User.findOne({username: username}, function (err, user) {
         if (err) {
             console.dir(err);
             return;
         }
+        for (i = user.photos.length - 1; i >= 0; i--) {
+            if (user.photos[i].source == 'flickr') {
+                user.photos.splice(i, 1);
+            }
+        }
+        user.save(function(err){
+            if(err) console.dir(err);
+        });
+
         var oauth = {
             consumer_key: privateInfo.flickr.consumer_key
             , consumer_secret: privateInfo.flickr.consumer_secret
@@ -168,12 +177,13 @@ function getFlickrPhotos(username, res) {
             }
             console.log("pava");
             console.dir(body);
-            insertDatabaseFlickr(username, JSON.parse(body), res);
+            insertDatabaseFlickr(username, JSON.parse(body), callback);
         });
     });
 };
 function insertDatabaseFlickr(username, body, next) {
     var count = 0;
+
     User.findOne({username: username}, function (err, user) {
         if (err) {
             console.dir(err);
@@ -195,7 +205,7 @@ function nextPictureFlickr(data, next) {
         data.user.save(function (err) {
             if (err) console.dir(err);
         })
-        return next.redirect('/flickr');
+        return next();
     }
     var rspPhoto = data.body.photos.photo[data.count];
 
@@ -249,11 +259,13 @@ function nextPictureFlickr(data, next) {
                 };
 
                 if (comments.comments != undefined) {
-                    for (i = 0; i < comments.comments.comment.length; i++) {
-                        authorList = splitTextInTags(comments.comments.comment[i].realname);
-                        commentList = splitTextInTags(comments.comments.comment[i]._content);
-                        for (j = 0; j < authorList.length; j++) commentsArray.author.push(authorList[j]);
-                        for (j = 0; j < commentList.length; j++) commentsArray.content.push(commentList[j]);
+                    if(comments.comments.comment!=undefined) {
+                        for (i = 0; i < comments.comments.comment.length; i++) {
+                            authorList = splitTextInTags(comments.comments.comment[i].realname);
+                            commentList = splitTextInTags(comments.comments.comment[i]._content);
+                            for (j = 0; j < authorList.length; j++) commentsArray.author.push(authorList[j]);
+                            for (j = 0; j < commentList.length; j++) commentsArray.content.push(commentList[j]);
+                        }
                     }
                 }
 
