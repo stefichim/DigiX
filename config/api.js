@@ -107,24 +107,33 @@ function getFacebookAlbum(profile_id, token, user, callback) {
 };
 
 function unsyncFacebookPhotos(user, isRefresh, callback) {
-    if (isRefresh != 1){
-        user.facebook.token = undefined;
-        user.facebook.profile_id = undefined;
-    }
+    if (user.facebook.token) {
 
-    for (var i = user.photos.length - 1; i >= 0; i--) {
-        if (user.photos[i].source == 'facebook') {
-            user.photos.splice(i, 1);
+        if (isRefresh != 1) {
+            user.facebook.token = undefined;
+            user.facebook.profile_id = undefined;
         }
-    }
 
-    callback(user);
+        for (var i = user.photos.length - 1; i >= 0; i--) {
+            if (user.photos[i].source == 'facebook') {
+                user.photos.splice(i, 1);
+            }
+        }
+
+        callback(user);
+    } else {
+        callback(user);
+    }
 };
 
 function syncFacebookPhotos(user, callback) {
-    getFacebookAlbum(user.facebook.profile_id, user.facebook.token, user, function (user) {
+    if (user.facebook.token) {
+        getFacebookAlbum(user.facebook.profile_id, user.facebook.token, user, function (user) {
+            callback(user);
+        });
+    } else {
         callback(user);
-    });
+    }
 };
 
 
@@ -284,35 +293,39 @@ function unsyncFlickr(user, callback ){
 
 
 function getPicasaAlbums(profile_id, token, user, callback) {
-    var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
+    if (profile_id != undefined) {
+        var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
 
-    request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var albumsJson = JSON.parse(body);
+        request(url, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var albumsJson = JSON.parse(body);
 
-            if (albumsJson.feed.entry != undefined) {
+                if (albumsJson.feed.entry != undefined) {
 
-                getPicasaPhotos(new Array(), 0, albumsJson.feed.entry, profile_id, token, function (photos) {
-                    for (var i = user.photos.length - 1; i >= 0; i--) {
-                        if (user.photos[i].source == 'google') {
-                            user.photos.splice(i, 1);
+                    getPicasaPhotos(new Array(), 0, albumsJson.feed.entry, profile_id, token, function (photos) {
+                        for (var i = user.photos.length - 1; i >= 0; i--) {
+                            if (user.photos[i].source == 'google') {
+                                user.photos.splice(i, 1);
+                            }
                         }
-                    }
 
-                    for (var i = 0; i < photos.length; i++) {
-                        user.photos.push(photos[i]);
-                    }
+                        for (var i = 0; i < photos.length; i++) {
+                            user.photos.push(photos[i]);
+                        }
 
-                    user.google.user_id = profile_id;
-                    user.google.access_token = token;
+                        user.google.user_id = profile_id;
+                        user.google.access_token = token;
 
+                        callback(user);
+                    });
+                } else {
                     callback(user);
-                });
-            } else {
-                callback(user);
+                }
             }
-        }
-    });
+        });
+    } else {
+        callback(user);
+    }
 }
 
 function getPicasaPhotos(photos, album_nr, album_array, profile_id, access_token, callback) {

@@ -7,7 +7,7 @@ var async = require('../node_modules/async');
 var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 var api = require('../config/api');
-var treeF= require('../config/treeFunctions');
+var treeF = require('../config/treeFunctions');
 
 module.exports = function (app, passport) {
     app.get('/', function (req, res) {
@@ -47,33 +47,22 @@ module.exports = function (app, passport) {
                             throw  err;
                         api.syncFacebookPhotos(user, function (user) {
                             user.save(function (err) {
-                                if (err){
+                                if (err) {
                                     res.redirect('logout');
                                     throw  err;
                                 }
-                                res.redirect('profile');
+
+                                refreshInstagramPhotos(req, res, user, function (user) {
+                                    api.getPicasaAlbums(user.google.user_id, user.google.access_token, user, function (user) {
+                                        res.redirect('profile');
+                                    });
+                                })
                             });
                         });
                     })
                 });
 
-                //if (user.instagram.access_token){
-                //    for (var i = user.photos.length - 1; i >= 0; i--) {
-                //        if (user.photos[i].source == 'Instagram') {
-                //            user.photos.splice(i, 1);
-                //        }
-                //    }
-                //    getInstagramPictures(req, res, function (err, result) {
-                //        if (err) {
-                //            console.log(err)
-                //        }
-                //    });
-                //    user.save(function (err) {
-                //        if (err) {
-                //            console.dir(err);
-                //        }
-                //    });
-                //}
+
             }
         });
     });
@@ -177,7 +166,7 @@ module.exports = function (app, passport) {
 
                     var photoTags = [];
                     photoTags.push.apply(photoTags, user.photos[i].tags.description);
-                    for (var j = 0; j < user.photos[i].tags.comments.length; j++){
+                    for (var j = 0; j < user.photos[i].tags.comments.length; j++) {
                         photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].author);
                         photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].content);
                     }
@@ -189,9 +178,9 @@ module.exports = function (app, passport) {
                     });
 
                     var tagsScore = 0;
-                    for (var j = 0; j < words.length; j++){
-                        for (var k = 0; k < photoTags.length; k++){
-                            if (photoTags[k].indexOf(words[j]) > -1){
+                    for (var j = 0; j < words.length; j++) {
+                        for (var k = 0; k < photoTags.length; k++) {
+                            if (photoTags[k].indexOf(words[j]) > -1) {
                                 tagsScore++;
                             }
                         }
@@ -210,12 +199,12 @@ module.exports = function (app, passport) {
                 });
 
                 var maxScore = 0;
-                if (user.searched_photos.length){
+                if (user.searched_photos.length) {
                     maxScore = user.searched_photos[0].score;
                 }
 
-                for (var i = 0; i < user.searched_photos.length; i++){
-                    if (user.searched_photos[i].score < maxScore / 2){
+                for (var i = 0; i < user.searched_photos.length; i++) {
+                    if (user.searched_photos[i].score < maxScore / 2) {
                         user.searched_photos.splice(i, 1);
                         i--;
                     }
@@ -301,49 +290,49 @@ module.exports = function (app, passport) {
     app.post('/ajax', isLoggedIn, function (req, res) {
         var node = req.body.node;
         User.findOne({'username': req.user.username}, function (err, user) {
-            updateTree(user,node);
+            updateTree(user, node);
         });
 
     });
 
-    app.get('/get/root', isLoggedIn, function(req,res){
+    app.get('/get/root', isLoggedIn, function (req, res) {
         console.log("AJAX");
-        var tree=req.user.tree;
+        var tree = req.user.tree;
         var root;
-        for(i=0;i<tree.length;i++){
-            if(tree[i].myID=="root") root=tree[i];
+        for (i = 0; i < tree.length; i++) {
+            if (tree[i].myID == "root") root = tree[i];
         }
         console.log(root);
         res.send(root);
     });
 
-    app.get('/get/parents', isLoggedIn, function(req,res){
-        var myID=req.query.myID;
+    app.get('/get/parents', isLoggedIn, function (req, res) {
+        var myID = req.query.myID;
         var parents = {
             mother: String,
             father: String
         }
-        var tree=req.user.tree;
-        for(i=0;i<tree.length;i++){
-            if(tree[i].myID==myID){
-                parents.mother=tree[i].mother;
-                parents.father=tree[i].father;
+        var tree = req.user.tree;
+        for (i = 0; i < tree.length; i++) {
+            if (tree[i].myID == myID) {
+                parents.mother = tree[i].mother;
+                parents.father = tree[i].father;
                 res.send(parents);
             }
         }
         res.send(parents);
     });
 
-    app.get('/get/children', isLoggedIn, function(req,res){
-        var tree=req.user.tree;
-        var myID=req.query.myID;
-        var children= {
+    app.get('/get/children', isLoggedIn, function (req, res) {
+        var tree = req.user.tree;
+        var myID = req.query.myID;
+        var children = {
             boys: [String],
             girl: [String]
         }
-        for(i=0;i<tree.length;i++){
-            if(tree[i].mother==myID || tree[i].father==myID){
-                if(tree[i].genre=="male") children.boys.push(tree[i].myID);
+        for (i = 0; i < tree.length; i++) {
+            if (tree[i].mother == myID || tree[i].father == myID) {
+                if (tree[i].genre == "male") children.boys.push(tree[i].myID);
                 else children.girl.push(tree[i].myID);
             }
         }
@@ -352,11 +341,10 @@ module.exports = function (app, passport) {
 
 
 
-
     function updateTree(user, node, res) {
-        var found=false;
+        var found = false;
         for (i = 0; i < user.tree.length; i++) {
-            if(found==true) return;
+            if (found == true) return;
             if (user.tree[i].myID = node.fromID) {
                 var newNode = {
                     myID: node.myID,
@@ -367,39 +355,41 @@ module.exports = function (app, passport) {
                 }
                 if (node.type == "mother") {
                     user.tree[i].mother = node.myID;
-                    newNode.genre="female";
+                    newNode.genre = "female";
                     user.tree.push(newNode);
-                    found=true;
+                    found = true;
                 }
                 else if (node.type == "father") {
                     user.tree[i].father = node.myID;
-                    newNode.genre="male";
+                    newNode.genre = "male";
                     user.tree.push(newNode);
-                    found=true;
+                    found = true;
                 }
-                else if (node.type == "girl"){
-                    newNode.mother=node.fromID;
-                    newNode.genre="female";
+                else if (node.type == "girl") {
+                    newNode.mother = node.fromID;
+                    newNode.genre = "female";
                     user.tree.push(newNode);
-                    found=true;
+                    found = true;
                 }
-                else if(node.type=="boy"){
-                    newNode.father=node.fromID;
-                    newNode.genre="male";
+                else if (node.type == "boy") {
+                    newNode.father = node.fromID;
+                    newNode.genre = "male";
                     user.tree.push(newNode);
-                    found=true;
+                    found = true;
                 }
 
             }
-            if(found==true){
-                user.save(function(err){
-                    if(err) console.dir(err);
+            if (found == true) {
+                user.save(function (err) {
+                    if (err) console.dir(err);
 
                 })
             }
         }
+
     }
-    app.get('/unsync/Flickr', isLoggedIn, function(req,res){
+
+    app.get('/unsync/Flickr', isLoggedIn, function (req, res) {
         console.log("unsync");
         User.findOne({username: req.user.username}, function (err, user) {
             if (err || !user)
@@ -416,7 +406,7 @@ module.exports = function (app, passport) {
     });
 
     app.get('/sync/Flickr', isLoggedIn, function (req, res) {
-        var tempUsername=req.user;
+        var tempUsername = req.user;
         var oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -471,7 +461,7 @@ module.exports = function (app, passport) {
             user.flickr.nsid = credentials.nsid;
             user.save(function (err) {
                 if (err) console.dir(err);
-                else api.getFlickrPhotos(credentials.username,next);
+                else api.getFlickrPhotos(credentials.username, next);
             });
         });
 
@@ -527,6 +517,32 @@ module.exports = function (app, passport) {
         }
     });
 
+    function refreshInstagramPhotos(req, res, user, callback) {
+        if (user.instagram.access_token) {
+            for (var i = user.photos.length - 1; i >= 0; i--) {
+                if (user.photos[i].source == 'Instagram') {
+                    user.photos.splice(i, 1);
+                }
+            }
+            getInstagramPictures(req, res, function (err, result) {
+                if (err) {
+                    console.log(err)
+                }
+
+                user.save(function (err) {
+                    if (err) {
+                        console.dir(err);
+                    }
+
+                    callback(user);
+                });
+
+            });
+        } else {
+            callback(user);
+        }
+    }
+
     function getInstagramPictures(req, res, next) {
         User.findOne({'username': req.user.username}, function (err, user) {
             if (err) console.log(err);
@@ -549,7 +565,7 @@ module.exports = function (app, passport) {
                             var tags = {};
                             tags.description = [];
                             tags.comments = [];
-                            tags.likes =[];
+                            tags.likes = [];
                             tags.tagged = [];
                             async.parallel([
 
