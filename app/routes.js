@@ -352,6 +352,7 @@ module.exports = function (app, passport) {
 
 
 
+
     function updateTree(user, node, res) {
         var found=false;
         for (i = 0; i < user.tree.length; i++) {
@@ -397,7 +398,6 @@ module.exports = function (app, passport) {
                 })
             }
         }
-
     }
     app.get('/unsync/Flickr', isLoggedIn, function(req,res){
         console.log("unsync");
