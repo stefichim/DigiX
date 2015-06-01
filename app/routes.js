@@ -7,7 +7,7 @@ var async = require('../node_modules/async');
 var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 var api = require('../config/api');
-var treeF = require('../config/treeFunctions');
+var treeFunctions = require('../config/treeFunctions');
 
 module.exports = function (app, passport) {
     app.get('/', function (req, res) {
@@ -54,7 +54,7 @@ module.exports = function (app, passport) {
 
                                 refreshInstagramPhotos(req, res, user, function (user) {
                                     api.getPicasaAlbums(user.google.user_id, user.google.access_token, user, function (user) {
-                                        api.getFlickrPhotos(req.user.username, function() {
+                                        api.getFlickrPhotos(req.user.username, function () {
                                             res.redirect('profile');
                                         });
                                     });
@@ -182,8 +182,8 @@ module.exports = function (app, passport) {
                     var tagsScore = 0;
                     for (var j = 0; j < words.length; j++) {
                         for (var k = 0; k < photoTags.length; k++) {
-                            if (photoTags[k].length == 2){
-                                if (photoTags[k].indexOf(words[j]) == 0){
+                            if (photoTags[k].length == 2) {
+                                if (photoTags[k].indexOf(words[j]) == 0) {
                                     tagsScore++;
                                 }
                             } else {
@@ -242,7 +242,6 @@ module.exports = function (app, passport) {
             }
 
 
-
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
             }
@@ -295,8 +294,6 @@ module.exports = function (app, passport) {
     app.get('/arbore', isLoggedIn, function (req, res) {
         res.render('arbore.ejs', {});
     });
-
-
 
 
     app.post('/ajax', isLoggedIn, function (req, res) {
@@ -352,61 +349,60 @@ module.exports = function (app, passport) {
     });
 
 
-
     function updateTree(user, node, res) {
         var found = false;
 
-        if(node.type=="root") {
-            user.tree.push({ 'myID':node.myID, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
+        if (node.type == "root") {
+            user.tree.push({'myID': node.myID, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
             user.save(function (err) {
                 if (err) console.dir(err);
             })
             return;
         }
 
-            for (i = 0; i < user.tree.length; i++) {
-                if (found == true) return;
-                if (user.tree[i].myID = node.fromID) {
-                    var newNode = {
-                        myID: node.myID,
-                        name: node.name,
-                        mother: "",
-                        father: "",
-                        genre: ""
-                    }
-                    if (node.type == "mother") {
-                        user.tree[i].mother = node.myID;
-                        newNode.genre = "female";
-                        user.tree.push(newNode);
-                        found = true;
-                    }
-                    else if (node.type == "father") {
-                        user.tree[i].father = node.myID;
-                        newNode.genre = "male";
-                        user.tree.push(newNode);
-                        found = true;
-                    }
-                    else if (node.type == "girl") {
-                        newNode.mother = node.fromID;
-                        newNode.genre = "female";
-                        user.tree.push(newNode);
-                        found = true;
-                    }
-                    else if (node.type == "boy") {
-                        newNode.father = node.fromID;
-                        newNode.genre = "male";
-                        user.tree.push(newNode);
-                        found = true;
-                    }
-
+        for (i = 0; i < user.tree.length; i++) {
+            if (found == true) return;
+            if (user.tree[i].myID = node.fromID) {
+                var newNode = {
+                    myID: node.myID,
+                    name: node.name,
+                    mother: "",
+                    father: "",
+                    genre: ""
                 }
-                if (found == true) {
-                    user.save(function (err) {
-                        if (err) console.dir(err);
-
-                    })
+                if (node.type == "mother") {
+                    user.tree[i].mother = node.myID;
+                    newNode.genre = "female";
+                    user.tree.push(newNode);
+                    found = true;
                 }
+                else if (node.type == "father") {
+                    user.tree[i].father = node.myID;
+                    newNode.genre = "male";
+                    user.tree.push(newNode);
+                    found = true;
+                }
+                else if (node.type == "girl") {
+                    newNode.mother = node.fromID;
+                    newNode.genre = "female";
+                    user.tree.push(newNode);
+                    found = true;
+                }
+                else if (node.type == "boy") {
+                    newNode.father = node.fromID;
+                    newNode.genre = "male";
+                    user.tree.push(newNode);
+                    found = true;
+                }
+
             }
+            if (found == true) {
+                user.save(function (err) {
+                    if (err) console.dir(err);
+
+                })
+            }
+        }
 
     }
 
@@ -446,8 +442,6 @@ module.exports = function (app, passport) {
         });
 
     }
-
-
 
 
     //----------------------------------------------------------
@@ -490,7 +484,6 @@ module.exports = function (app, passport) {
                             });
                         });
                     });
-
 
 
                 });
@@ -806,10 +799,12 @@ module.exports = function (app, passport) {
                 user.searched_photos.length = 0;
 
                 var description_tags = api.splitTextInTags(req.query.description);
-                var commented_by_tags = api.splitTextInTags(req.query.commented_by);
-                var commented_content_tags = api.splitTextInTags(req.query.commented_content);
-                var liked_by_tags = api.splitTextInTags(req.query.liked_by);
-                var persons_tagged_tags = api.splitTextInTags(req.query.persons_tagged);
+
+
+                var commented_by_tags = getTreeNames(user, api.splitTextInTags(req.query.commented_by));
+                var commented_content_tags = getTreeNames(user, api.splitTextInTags(req.query.commented_content));
+                var liked_by_tags = getTreeNames(user, api.splitTextInTags(req.query.liked_by));
+                var persons_tagged_tags = getTreeNames(user, api.splitTextInTags(req.query.persons_tagged));
 
 
                 if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
@@ -999,10 +994,16 @@ module.exports = function (app, passport) {
                 }
             });
         }
-    )
-    ;
+    );
+};
+
+function getTreeNames(user, array) {
+    for (var i = 0; i < array.length; i++) {
+        array.push.apply(array, treeFunctions.getTreeTags(user, array[i]));
+    }
+
+    return array;
 }
-;
 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
