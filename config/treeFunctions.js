@@ -116,7 +116,7 @@ function getTreeTags(user, name){
         case "niece" : return niece(user);
         case "grandpa": return grandpa(user);
         case "grandma": return grandma(user);
-        default: return;
+        default: return [""];
     }
 }
 
