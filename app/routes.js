@@ -182,8 +182,16 @@ module.exports = function (app, passport) {
                     var tagsScore = 0;
                     for (var j = 0; j < words.length; j++) {
                         for (var k = 0; k < photoTags.length; k++) {
-                            if (photoTags[k].indexOf(words[j]) > -1) {
-                                tagsScore++;
+                            if (photoTags[k].length == 2){
+                                if (photoTags[k].indexOf(words[j]) == 0){
+                                    tagsScore++;
+                                }
+                            } else {
+                                if (photoTags[k].indexOf(words[j]) > -1) {
+                                    if (photoTags[k].length <= 1.75 * words[j].length) {
+                                        tagsScore++;
+                                    }
+                                }
                             }
                         }
                     }
@@ -860,9 +868,22 @@ module.exports = function (app, passport) {
                             photos[i].score = 0;
                             for (var j = 0; j < description_tags.length; j++) {
                                 for (var k = 0; k < photos[i].tags.description.length; k++) {
-                                    if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
-                                        photos[i].score++;
+
+                                    if (photos[i].tags.description[k].length == 2){
+                                        if (photos[i].tags.description[k].indexOf(description_tags[j]) == 0){
+                                            photos[i].score++;
+                                        }
+                                    } else {
+                                        if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
+                                            if (photos[i].tags.description[k].length <= 1.75 * description_tags[j].length) {
+                                                photos[i].score++;
+                                            }
+                                        }
                                     }
+
+                                    //if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
+                                    //    photos[i].score++;
+                                    //}
                                 }
                             }
 
@@ -871,17 +892,43 @@ module.exports = function (app, passport) {
                                 for (var l = 0; l < photos[i].tags.comments.length; l++) {
                                     for (j = 0; j < commented_by_tags.length; j++) {
                                         for (k = 0; k < photos[i].tags.comments[l].author.length; k++) {
-                                            if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
-                                                photos[i].score++;
+
+                                            if (photos[i].tags.comments[l].author[k].length == 2){
+                                                if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) == 0){
+                                                    photos[i].score++;
+                                                }
+                                            } else {
+                                                if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
+                                                    if (photos[i].tags.comments[l].author[k].length <= 1.75 * commented_by_tags[j].length) {
+                                                        photos[i].score++;
+                                                    }
+                                                }
                                             }
+
+                                            //if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
+                                            //    photos[i].score++;
+                                            //}
                                         }
                                     }
 
                                     for (j = 0; j < commented_content_tags.length; j++) {
                                         for (k = 0; k < photos[i].tags.comments[l].content.length; k++) {
-                                            if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
-                                                photos[i].score++;
+
+                                            if (photos[i].tags.comments[l].content[k].length == 2){
+                                                if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) == 0){
+                                                    photos[i].score++;
+                                                }
+                                            } else {
+                                                if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
+                                                    if (photos[i].tags.comments[l].content[k].length <= 1.75 * commented_content_tags[j].length) {
+                                                        photos[i].score++;
+                                                    }
+                                                }
                                             }
+
+                                            //if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
+                                            //    photos[i].score++;
+                                            //}
                                         }
                                     }
                                 }
@@ -890,17 +937,43 @@ module.exports = function (app, passport) {
 
                             for (j = 0; j < liked_by_tags.length; j++) {
                                 for (k = 0; k < photos[i].tags.likes.length; k++) {
-                                    if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
-                                        photos[i].score++;
+
+                                    if (photos[i].tags.likes[k].length == 2){
+                                        if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) == 0){
+                                            photos[i].score++;
+                                        }
+                                    } else {
+                                        if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
+                                            if (photos[i].tags.likes[k].length <= 1.75 * liked_by_tags[j].length) {
+                                                photos[i].score++;
+                                            }
+                                        }
                                     }
+
+                                    //if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
+                                    //    photos[i].score++;
+                                    //}
                                 }
                             }
 
                             for (j = 0; j < persons_tagged_tags.length; j++) {
                                 for (k = 0; k < photos[i].tags.tagged.length; k++) {
-                                    if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
-                                        photos[i].score++;
+
+                                    if (photos[i].tags.tagged[k].length == 2){
+                                        if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) == 0){
+                                            photos[i].score++;
+                                        }
+                                    } else {
+                                        if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
+                                            if (photos[i].tags.tagged[k].length <= 1.75 * persons_tagged_tags[j].length) {
+                                                photos[i].score++;
+                                            }
+                                        }
                                     }
+
+                                    //if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
+                                    //    photos[i].score++;
+                                    //}
                                 }
                             }
                         }
