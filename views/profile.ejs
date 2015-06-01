@@ -20,7 +20,7 @@
                 <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in as: <%= user.username %> </p>
 
                 <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
-				<a href="tree" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
+				<a href="arbore" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
 
 				<div class="dropdown btn-group btn-default">
     				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
@@ -34,88 +34,111 @@
 				</div>
 				<a href="refresh" class="btn navbar-btn btn-default" id="button-refresh"><span class=" glyphicon glyphicon-refresh"></span></a>
 
-				<form action="/search_photos_button" class="navbar-form navbar-right" role="search">
-					<div class="form-group">
-						<input type="text" name="searched_text" class="form-control" placeholder="Search text">
-					</div>
-					<button type="submit" id="searchbtn" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
-				</form>
-			</div>
-		</div>
-	</header>
-	<br>
-	<!-- <div class="galleryTop">
-		<h2> Gallery </h2>
-		<div class="gallerySettings dropdown btn-group btn-primary">
-			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="galleryBtn"><span class="glyphicon glyphicon-cog"></span></a>
-			<ul class="dropdown-menu">
-				<li><a href="#" id="all">Display all</a></li>
-				<li><a href="#" id="pages">Display in pages</a></li>
-			</ul>
-		</div>
-	</div> -->
+            <div class="dropdown btn-group btn-default navbar-btn navbar-right">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span
+                            class="glyphicon glyphicon-chevron-down"></span></a>
+                <ul class="dropdown-menu" style="width:180px">
+                    <li>
+                        <form action="/advanced_search" class="navbar-form navbar-right" role="search">
+                            Description : <input type="text" name="description"><br>
+                            Commented By : <input type="text" name="commented_by"><br>
+                            Comment Content : <input type="text" name="commented_content"><br>
+                            Liked By : <input type="text" name="liked_by"><br>
+                            Persons Tagged : <input type="text" name="persons_tagged"><br>
+                            <button type="submit" id="searchbtn" class="btn btn-default btn_right"><span
+                                        class="glyphicon glyphicon-search"></span></button>
+                        </form>
+                    </li>
 
-	<div class="galery">
-		<br>
-
-		<!--<div class="pictures" id="allPictures">-->
-			<!--<% for(var i=0; i<photos.length; i++) {%>-->
-			   <!--<a href=<%- photos[i] %>>-->
-			   	<!--<img src=<%- photos[i] %> height=200px>-->
-			   <!--</a>-->
-			<!--<% } %>-->
-		<!--</div>-->
-
-		<!--<div class="pictures " id="paginated">-->
-				<!--<div id="invisible">-->
-					<!--<a href="/images/scroll/EDIT_0193.jpg" id="sample"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" 	height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0607.jpg"> <img src="/images/scroll/EDIT_0607.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>-->
-				<!--</div>-->
-
-				<!--<div id="visible">-->
-					<!--<a href="/images/scroll/EDIT_0208.jpg" id="sample"><img src="/images/scroll/EDIT_0208.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0288.jpg"> <img src="/images/scroll/EDIT_0288.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_370-371.jpg"> <img src="/images/scroll/EDIT_370-371.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0391.jpg"> <img src="/images/scroll/EDIT_0391.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>-->
-					<!--<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>-->
-				<!--</div>-->
-
-			<!--<ul class="pager">-->
-				<!--<li><a href="#" id="prev"> Previous Page </a></li>-->
-				<!--<li><a href="#" id="next"> Next Page </a></li>-->
-			<!--</ul>-->
-		<!--</div>-->
-
-		<div class="pictures">
-
-			<div id="visible">
-				<% for(var i=0; i<photos.length; i++) {%>
-					<a href=<%- photos[i] %>><img src=<%- photos[i] %> height=200px></a>
-				<% } %>
-			</div>
-
-			<ul class="pager">
-				<li><a href="/profile/previous" id=<%- previousButtonVisible %>> Previous Page </a></li>
-				<li><a href="/profile/next" id=<%- nextButtonVisible %>> Next Page </a></li>
-			</ul>
-
-		</div>
-
-	</div>
+                </ul>
+            </div>
 
 
-	<script src="javascripts/scroll.js"></script>
+            <form action="/search_photos_button" class="navbar-form navbar-right" role="search">
+                <div class="form-group">
+                    <input type="text" name="searched_text" class="form-control" placeholder="Search text">
+                </div>
+                <button type="submit" id="searchbtn" class="btn btn-default"><span
+                            class="glyphicon glyphicon-search"></span></button>
+            </form>
+
+
+        </div>
+    </div>
+</header>
+<br>
+<!-- <div class="galleryTop">
+    <h2> Gallery </h2>
+    <div class="gallerySettings dropdown btn-group btn-primary">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#" id="galleryBtn"><span class="glyphicon glyphicon-cog"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="#" id="all">Display all</a></li>
+            <li><a href="#" id="pages">Display in pages</a></li>
+        </ul>
+    </div>
+</div> -->
+
+<div class="galery">
+    <br>
+
+    <!--<div class="pictures" id="allPictures">-->
+    <!--<% for(var i = 0; i < photos.length; i++) { %>-->
+    <!--<a href=<%- photos[i] %>>-->
+    <!--<img src=<%- photos[i] %> height=200px>-->
+    <!--</a>-->
+    <!--<% } %>-->
+    <!--</div>-->
+
+    <!--<div class="pictures " id="paginated">-->
+    <!--<div id="invisible">-->
+    <!--<a href="/images/scroll/EDIT_0193.jpg" id="sample"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" 	height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0607.jpg"> <img src="/images/scroll/EDIT_0607.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>-->
+    <!--</div>-->
+
+    <!--<div id="visible">-->
+    <!--<a href="/images/scroll/EDIT_0208.jpg" id="sample"><img src="/images/scroll/EDIT_0208.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0288.jpg"> <img src="/images/scroll/EDIT_0288.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_370-371.jpg"> <img src="/images/scroll/EDIT_370-371.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0391.jpg"> <img src="/images/scroll/EDIT_0391.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0622.jpg"> <img src="/images/scroll/EDIT_0622.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0650.jpg"> <img src="/images/scroll/EDIT_0650.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0193.jpg"><img src="/images/scroll/EDIT_0193.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0280.jpg"> <img src="/images/scroll/EDIT_0280.jpg" height=200px></a>-->
+    <!--<a href="/images/scroll/EDIT_0459.jpg"> <img src="/images/scroll/EDIT_0459.jpg" height=200px></a>-->
+    <!--</div>-->
+
+    <!--<ul class="pager">-->
+    <!--<li><a href="#" id="prev"> Previous Page </a></li>-->
+    <!--<li><a href="#" id="next"> Next Page </a></li>-->
+    <!--</ul>-->
+    <!--</div>-->
+
+    <div class="pictures">
+
+        <div id="visible">
+            <% for(var i = 0; i < photos.length; i++) { %>
+            <a href=<%- photos[i] %>><img src=<%- photos[i] %> height=200px></a>
+            <% } %>
+        </div>
+
+        <ul class="pager">
+            <li><a href="/profile/previous" id=<%- previousButtonVisible %>> Previous Page </a></li>
+            <li><a href="/profile/next" id=<%- nextButtonVisible %>> Next Page </a></li>
+        </ul>
+
+    </div>
+
+</div>
+
+
+<script src="javascripts/scroll.js"></script>
 
 </body>
 </html>
