@@ -309,7 +309,7 @@ module.exports = function (app, passport) {
         var tree = req.user.tree;
         var root;
         for (i = 0; i < tree.length; i++) {
-            if (tree[i].myID == "root") root = tree[i];
+            if (tree[i].myID == "0") root = tree[i];
         }
         console.log(root);
         res.send(root);
@@ -348,6 +348,14 @@ module.exports = function (app, passport) {
         res.send(children);
     });
 
+    app.post('/post/delete/node', isLoggedIn, function(req,res){
+        var nodeID=req.body.myID;
+        User.findOne({'username': req.user.username}, function(err,user){
+            treeF.deleteNode(user, nodeID, function(){
+                res.end();
+            });
+        });
+    });
 
     function updateTree(user, node, res) {
         var found = false;
@@ -428,20 +436,6 @@ module.exports = function (app, passport) {
         failureRedirect: '/logout'
     }));
 
-    function updateFlickrCredentials(credentials, next) {
-
-
-        User.findOne({'username': credentials.username}, function (err, user) {
-            user.flickr.token = credentials.oauth_token;
-            user.flickr.token_secret = credentials.oauth_token_secret;
-            user.flickr.nsid = credentials.nsid;
-            user.save(function (err) {
-                if (err) console.dir(err);
-                else api.getFlickrPhotos(credentials.username, next);
-            });
-        });
-
-    }
 
 
     //----------------------------------------------------------
