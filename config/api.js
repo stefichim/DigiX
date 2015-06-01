@@ -4,9 +4,9 @@ var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 /* Facebook */
 /* Facebook */
-function removeNull(tmp_arr){
-    for (var i = 0; i < tmp_arr.length; i++){
-        if (tmp_arr[i] == ""){
+function removeNull(tmp_arr) {
+    for (var i = 0; i < tmp_arr.length; i++) {
+        if (tmp_arr[i] == "") {
             tmp_arr.splice(i, 1);
         }
     }
@@ -33,20 +33,20 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
                     tags = [];
 
                     // Photo location
-                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined){
+                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined) {
                         var tmp_arr = photosJson['data'][j].place.name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                         removeNull(tmp_arr);
                         tags.push.apply(tags, tmp_arr);
                     }
                     // Photo description
-                    if (photosJson['data'][j].name){
+                    if (photosJson['data'][j].name) {
                         var tmp_arr = photosJson['data'][j].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                         removeNull(tmp_arr);
                         tags.push.apply(tags, tmp_arr);
                     }
                     // Photo tags
                     if (photosJson['data'].tags != undefined && photosJson['data'].tags.data != undefined) {
-                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++){
+                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++) {
                             var tmp_arr = photosJson['data'].tags.data[k].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                             removeNull(tmp_arr);
                             tags.push.apply(tags, tmp_arr);
@@ -66,8 +66,7 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
 
 
                 if (photosJson['paging'] != undefined) {
-                    if (photosJson['paging'].next != undefined)
-                    {
+                    if (photosJson['paging'].next != undefined) {
                         getFacebookPhoto(photos, album_index, albums, token, photosJson['paging'].next, callback);
                     }
                     else {
@@ -137,8 +136,7 @@ function syncFacebookPhotos(user, callback) {
 };
 
 
-
-function getFlickrPhotos(username, res){
+function getFlickrPhotos(username, res) {
 
     User.findOne({username: username}, function (err, user) {
         if (err) {
@@ -197,22 +195,22 @@ function nextPictureFlickr(data, next) {
 
 
     var describeUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.getInfo' +
-            '&' + 'photo_id=' + rspPhoto.id + '&secret='+rspPhoto.secret+ '&format=json&nojsoncallback=1',
+            '&' + 'photo_id=' + rspPhoto.id + '&secret=' + rspPhoto.secret + '&format=json&nojsoncallback=1',
         oauth = {
             consumer_key: privateInfo.flickr.consumer_key
             , consumer_secret: privateInfo.flickr.consumer_secret
         };
 
-    request.get({url: describeUrl, oauth: oauth}, function(e,r,body){
-        if(e){
+    request.get({url: describeUrl, oauth: oauth}, function (e, r, body) {
+        if (e) {
             console.dir(e);
             return;
         }
 
-        var info=JSON.parse(body);
-        var description=info.photo.description._content;
-        var splitDescription="";
-        if(description!="") splitDescription=splitTextInTags(description);
+        var info = JSON.parse(body);
+        var description = info.photo.description._content;
+        var splitDescription = "";
+        if (description != "") splitDescription = splitTextInTags(description);
 
         var tagUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.tags.getListPhoto' +
             '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1';
@@ -228,38 +226,38 @@ function nextPictureFlickr(data, next) {
                 realTags.push(tags.photo.tags.tag[j].raw);
             }
             //console.log(rspPhoto);
-            var commentsUrl='https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.comments.getList' +
-                '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1' ;
+            var commentsUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.comments.getList' +
+                '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1';
 
 
             request.get({url: commentsUrl, oauth: oauth}, function (e, r, body) {
-                var comments=JSON.parse(body);
+                var comments = JSON.parse(body);
 
-                var authorList="",commentList="";
-                var commentsArray= {
+                var authorList = "", commentList = "";
+                var commentsArray = {
                     'author': [],
                     'content': []
-                    };
+                };
 
-                if(comments.comments!=undefined){
+                if (comments.comments != undefined) {
                     console.log(comments.comments.comment.length);
-                    for(i=0;i<comments.comments.comment.length;i++) {
+                    for (i = 0; i < comments.comments.comment.length; i++) {
                         authorList = splitTextInTags(comments.comments.comment[i].realname);
-                        commentList=splitTextInTags(comments.comments.comment[i]._content);
-                        for(j=0;j<authorList.length;j++) commentsArray.author.push(authorList[j]);
-                        for(j=0;j<commentList.length;j++) commentsArray.content.push(commentList[j]);
+                        commentList = splitTextInTags(comments.comments.comment[i]._content);
+                        for (j = 0; j < authorList.length; j++) commentsArray.author.push(authorList[j]);
+                        for (j = 0; j < commentList.length; j++) commentsArray.content.push(commentList[j]);
                     }
                 }
 
-                var peopleUrl='https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.people.getList' +
-                    '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1' ;
+                var peopleUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.people.getList' +
+                    '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1';
 
                 request.get({url: peopleUrl, oauth: oauth}, function (e, r, body) {
-                    var people=JSON.parse(body).people;
-                    if(people!=undefined) {
+                    var people = JSON.parse(body).people;
+                    if (people != undefined) {
                         for (i = 0; i < people.total; i++) {
-                            var splitName=splitTextInTags(people.person[i].realname);
-                            realTags.push.apply(realTags,splitName);
+                            var splitName = splitTextInTags(people.person[i].realname);
+                            realTags.push.apply(realTags, splitName);
                             console.log(realTags);
                         }
                     }
@@ -279,15 +277,15 @@ function nextPictureFlickr(data, next) {
 
     });
 }
-function unsyncFlickr(user, callback ){
+function unsyncFlickr(user, callback) {
     for (var i = user.photos.length - 1; i >= 0; i--) {
         if (user.photos[i].source == 'flickr') {
             user.photos.splice(i, 1);
         }
     }
-    user.flickr.nsid=undefined;
-    user.flickr.token=undefined;
-    user.flickr.token_secret=undefined;
+    user.flickr.nsid = undefined;
+    user.flickr.token = undefined;
+    user.flickr.token_secret = undefined;
     callback(user);
 }
 
@@ -347,20 +345,20 @@ function getPicasaPhotos(photos, album_nr, album_array, profile_id, access_token
 
 function getPicasaPhotosInfo(j, profile_id, album_id, token, photosInAlbum, photos, callback) {
     if (photosInAlbum != undefined && j < photosInAlbum.length) {
-        var tags = [];
-
         getPicasaPhotoTags(profile_id
             , album_id
             , photosInAlbum[j]['gphoto$id']['$t']
             , token, function (titleTags, descriptionTags, commentsTags) {
-                tags.push.apply(tags, titleTags);
-                tags.push.apply(tags, descriptionTags);
-                tags.push.apply(tags, commentsTags.authorTags);
-                tags.push.apply(tags, commentsTags.textTags);
+                descriptionTags.push.apply(descriptionTags, titleTags);
 
                 photos.push({
                     url: photosInAlbum[j].content.src,
-                    tags: tags,
+                    tags: {
+                        description: descriptionTags,
+                        comments: commentsTags,
+                        likes: [],
+                        tagged: []
+                    },
                     source: 'google'
                 });
 
@@ -431,10 +429,10 @@ function isCharNotPartOfTag(char) {
 }
 
 module.exports = {
-    getFacebookPhoto : getFacebookPhoto,
-    getFacebookAlbum : getFacebookAlbum,
-    unsyncFacebookPhotos : unsyncFacebookPhotos,
-    syncFacebookPhotos : syncFacebookPhotos,
+    getFacebookPhoto: getFacebookPhoto,
+    getFacebookAlbum: getFacebookAlbum,
+    unsyncFacebookPhotos: unsyncFacebookPhotos,
+    syncFacebookPhotos: syncFacebookPhotos,
 
     getFlickrPhotos: getFlickrPhotos,
     unsyncFlickr: unsyncFlickr,

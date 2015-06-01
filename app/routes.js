@@ -76,6 +76,8 @@ module.exports = function (app, passport) {
                 var nextButtonVisible = 'visible';
 
                 var i;
+
+                console.log(typeof(user.current_picture_index));
                 for (i = parseInt(user.current_picture_index); i < user.photos.length && i < (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                     my_pictures.push(user.photos[i].url);
                 }
@@ -466,8 +468,6 @@ module.exports = function (app, passport) {
     }
 
 
-
-
     //----------------------------------------------------------
     //----------------------------------------------------------
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
@@ -830,7 +830,7 @@ module.exports = function (app, passport) {
 
 
                     if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
-                        user.current_picture_index = -1;
+                        user.current_picture_index = 0;
                         user.save(function (err) {
                             if (err) {
                                 console.dir(err);
@@ -844,6 +844,7 @@ module.exports = function (app, passport) {
                             photos[i].score = 0;
                             for (var j = 0; j < description_tags.length; j++) {
                                 for (var k = 0; k < photos[i].tags.description.length; k++) {
+                                    console.log(photos[i].score);
                                     if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
                                         photos[i].score++;
                                     }
@@ -906,7 +907,12 @@ module.exports = function (app, passport) {
                                 return 0;
                         });
 
+                        if (searched_photos.length == 0)
+                            searched_photos = undefined;
+
                         user.searched_photos = searched_photos;
+
+                        console.log(user.searched_photos);
 
                         user.save(function (err) {
                             if (err) {
