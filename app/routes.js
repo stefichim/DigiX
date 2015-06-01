@@ -76,6 +76,8 @@ module.exports = function (app, passport) {
                 var nextButtonVisible = 'visible';
 
                 var i;
+                console.log(user.current_picture_index);
+                console.log(parseInt(user.current_picture_index));
                 for (i = parseInt(user.current_picture_index); i < user.photos.length && i < (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                     my_pictures.push(user.photos[i].url);
                 }
@@ -232,6 +234,7 @@ module.exports = function (app, passport) {
             }
 
 
+
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
             }
@@ -337,6 +340,7 @@ module.exports = function (app, passport) {
         }
         res.send(children);
     });
+
 
 
     function updateTree(user, node, res) {
@@ -508,6 +512,7 @@ module.exports = function (app, passport) {
                             });
                         });
                     });
+
 
 
                 });
@@ -830,7 +835,7 @@ module.exports = function (app, passport) {
 
 
                     if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
-                        user.current_picture_index = -1;
+                        user.current_picture_index = 0;
                         user.save(function (err) {
                             if (err) {
                                 console.dir(err);
