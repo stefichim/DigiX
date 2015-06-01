@@ -922,6 +922,9 @@ module.exports = function (app, passport) {
                                 return 0;
                         });
 
+                        if (searched_photos.length == 0)
+                            searched_photos = undefined;
+
                         user.searched_photos = searched_photos;
 
                         user.save(function (err) {
