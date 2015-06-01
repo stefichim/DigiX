@@ -4,9 +4,9 @@ var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 /* Facebook */
 /* Facebook */
-function removeNull(tmp_arr){
-    for (var i = 0; i < tmp_arr.length; i++){
-        if (tmp_arr[i] == ""){
+function removeNull(tmp_arr) {
+    for (var i = 0; i < tmp_arr.length; i++) {
+        if (tmp_arr[i] == "") {
             tmp_arr.splice(i, 1);
         }
     }
@@ -33,20 +33,20 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
                     tags = [];
 
                     // Photo location
-                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined){
+                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined) {
                         var tmp_arr = photosJson['data'][j].place.name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                         removeNull(tmp_arr);
                         tags.push.apply(tags, tmp_arr);
                     }
                     // Photo description
-                    if (photosJson['data'][j].name){
+                    if (photosJson['data'][j].name) {
                         var tmp_arr = photosJson['data'][j].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                         removeNull(tmp_arr);
                         tags.push.apply(tags, tmp_arr);
                     }
                     // Photo tags
                     if (photosJson['data'].tags != undefined && photosJson['data'].tags.data != undefined) {
-                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++){
+                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++) {
                             var tmp_arr = photosJson['data'].tags.data[k].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                             removeNull(tmp_arr);
                             tags.push.apply(tags, tmp_arr);
@@ -66,8 +66,7 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
 
 
                 if (photosJson['paging'] != undefined) {
-                    if (photosJson['paging'].next != undefined)
-                    {
+                    if (photosJson['paging'].next != undefined) {
                         getFacebookPhoto(photos, album_index, albums, token, photosJson['paging'].next, callback);
                     }
                     else {
@@ -107,27 +106,56 @@ function getFacebookAlbum(profile_id, token, user, callback) {
 };
 
 function unsyncFacebookPhotos(user, isRefresh, callback) {
-    if (isRefresh != 1){
-        user.facebook.token = undefined;
-        user.facebook.profile_id = undefined;
-    }
+    if (user.facebook.token) {
 
-    for (var i = user.photos.length - 1; i >= 0; i--) {
-        if (user.photos[i].source == 'facebook') {
-            user.photos.splice(i, 1);
+        if (isRefresh != 1) {
+            user.facebook.token = undefined;
+            user.facebook.profile_id = undefined;
         }
-    }
 
-    callback(user);
+        for (var i = user.photos.length - 1; i >= 0; i--) {
+            if (user.photos[i].source == 'facebook') {
+                user.photos.splice(i, 1);
+            }
+        }
+
+        callback(user);
+    } else {
+        callback(user);
+    }
 };
 
 function syncFacebookPhotos(user, callback) {
-    getFacebookAlbum(user.facebook.profile_id, user.facebook.token, user, function (user) {
+    if (user.facebook.token) {
+        getFacebookAlbum(user.facebook.profile_id, user.facebook.token, user, function (user) {
+            callback(user);
+        });
+    } else {
         callback(user);
-    });
+    }
 };
 
-function getFlickrPhotos(username, res){
+function refreshInstagramPhotos(callback) {
+    if (user.instagram.access_token) {
+        for (var i = user.photos.length - 1; i >= 0; i--) {
+            if (user.photos[i].source == 'Instagram') {
+                user.photos.splice(i, 1);
+            }
+        }
+        getInstagramPictures(req, res, function (err, result) {
+            if (err) {
+                console.log(err)
+            }
+        });
+        user.save(function (err) {
+            if (err) {
+                console.dir(err);
+            }
+        });
+    }
+}
+
+function getFlickrPhotos(username, res) {
 
     User.findOne({username: username}, function (err, user) {
         if (err) {
@@ -199,53 +227,57 @@ function nextPictureFlickr(data, next) {
         for (j = 0; j < tags.photo.tags.tag.length; j++) {
             realTags.push(tags.photo.tags.tag[j].raw);
         }
-        data.user.photos.push({'url': photoUrl,'source':'flickr', 'tags': realTags});
+        data.user.photos.push({'url': photoUrl, 'source': 'flickr', 'tags': realTags});
         data.count++;
         nextPictureFlickr(data, next);
     });
 }
-function unsyncFlickr(user, callback ){
+function unsyncFlickr(user, callback) {
     for (var i = user.photos.length - 1; i >= 0; i--) {
         if (user.photos[i].source == 'flickr') {
             user.photos.splice(i, 1);
         }
     }
-    user.flickr.nsid=undefined;
-    user.flickr.token=undefined;
-    user.flickr.token_secret=undefined;
+    user.flickr.nsid = undefined;
+    user.flickr.token = undefined;
+    user.flickr.token_secret = undefined;
     callback(user);
 }
 
 function getPicasaAlbums(profile_id, token, user, callback) {
-    var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
+    if (profile_id != undefined) {
+        var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
 
-    request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var albumsJson = JSON.parse(body);
+        request(url, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var albumsJson = JSON.parse(body);
 
-            if (albumsJson.feed.entry != undefined) {
+                if (albumsJson.feed.entry != undefined) {
 
-                getPicasaPhotos(new Array(), 0, albumsJson.feed.entry, profile_id, token, function (photos) {
-                    for (var i = user.photos.length - 1; i >= 0; i--) {
-                        if (user.photos[i].source == 'google') {
-                            user.photos.splice(i, 1);
+                    getPicasaPhotos(new Array(), 0, albumsJson.feed.entry, profile_id, token, function (photos) {
+                        for (var i = user.photos.length - 1; i >= 0; i--) {
+                            if (user.photos[i].source == 'google') {
+                                user.photos.splice(i, 1);
+                            }
                         }
-                    }
 
-                    for (var i = 0; i < photos.length; i++) {
-                        user.photos.push(photos[i]);
-                    }
+                        for (var i = 0; i < photos.length; i++) {
+                            user.photos.push(photos[i]);
+                        }
 
-                    user.google.user_id = profile_id;
-                    user.google.access_token = token;
+                        user.google.user_id = profile_id;
+                        user.google.access_token = token;
 
+                        callback(user);
+                    });
+                } else {
                     callback(user);
-                });
-            } else {
-                callback(user);
+                }
             }
-        }
-    });
+        });
+    } else {
+        callback(user);
+    }
 }
 
 function getPicasaPhotos(photos, album_nr, album_array, profile_id, access_token, callback) {
@@ -358,10 +390,10 @@ function isCharNotPartOfTag(char) {
 }
 
 module.exports = {
-    getFacebookPhoto : getFacebookPhoto,
-    getFacebookAlbum : getFacebookAlbum,
-    unsyncFacebookPhotos : unsyncFacebookPhotos,
-    syncFacebookPhotos : syncFacebookPhotos,
+    getFacebookPhoto: getFacebookPhoto,
+    getFacebookAlbum: getFacebookAlbum,
+    unsyncFacebookPhotos: unsyncFacebookPhotos,
+    syncFacebookPhotos: syncFacebookPhotos,
 
     getFlickrPhotos: getFlickrPhotos,
     unsyncFlickr: unsyncFlickr,
