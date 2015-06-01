@@ -4,14 +4,6 @@ var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 /* Facebook */
 /* Facebook */
-function removeNull(tmp_arr) {
-    for (var i = 0; i < tmp_arr.length; i++) {
-        if (tmp_arr[i] == "") {
-            tmp_arr.splice(i, 1);
-        }
-    }
-};
-
 function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
     if (album_index < albums.length) {
         var album_url = "";
@@ -27,42 +19,60 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
         request(album_url, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var photosJson = JSON.parse(body);
-                //console.dir(photosJson);
+                console.dir(photosJson);
 
                 for (var j = 0; j < photosJson['data'].length; j++) {
-                    tags = [];
+                    var description = [];
+                    var tags = [];
+                    var likes = [];
+                    var comments = [];
 
                     // Photo location
                     if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined) {
-                        var tmp_arr = photosJson['data'][j].place.name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
-                        removeNull(tmp_arr);
-                        tags.push.apply(tags, tmp_arr);
+                        description.push.apply(description, splitTextInTags(photosJson['data'][j].place.name));
                     }
                     // Photo description
                     if (photosJson['data'][j].name) {
-                        var tmp_arr = photosJson['data'][j].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
-                        removeNull(tmp_arr);
-                        tags.push.apply(tags, tmp_arr);
+                        description.push.apply(description, splitTextInTags(photosJson['data'][j].name));
                     }
                     // Photo tags
-                    if (photosJson['data'].tags != undefined && photosJson['data'].tags.data != undefined) {
-                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++) {
-                            var tmp_arr = photosJson['data'].tags.data[k].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
-                            removeNull(tmp_arr);
-                            tags.push.apply(tags, tmp_arr);
+                    if (photosJson['data'][j].tags != undefined && photosJson['data'][j].tags.data != undefined) {
+                        for (var tag_index = 0; tag_index < photosJson['data'][j].tags.data.length; tag_index++) {
+                            tags.push.apply(tags, splitTextInTags(photosJson['data'][j].tags.data[tag_index].name));
+                        }
+                    }
+                    // Photo likes
+                    if (photosJson['data'][j].likes != undefined && photosJson['data'][j].likes.data != undefined) {
+                        for (var like_index = 0; like_index < photosJson['data'][j].likes.data.length; like_index++) {
+                            likes.push.apply(likes, splitTextInTags(photosJson['data'][j].likes.data[like_index].name));
+                        }
+                    }
+                    // Photo comments
+                    if (photosJson['data'][j].comments != undefined && photosJson['data'][j].comments.data != undefined) {
+                        for (var comment_index = 0; comment_index < photosJson['data'][j].comments.data.length; comment_index++) {
+                            comments.push({
+                                author: splitTextInTags(photosJson['data'][j].comments.data[comment_index].from.name),
+                                content: splitTextInTags(photosJson['data'][j].comments.data[comment_index].message)
+                            });
                         }
                     }
 
                     console.dir(tags);
+                    console.dir(likes);
+                    console.dir(comments);
+                    console.dir(description);
 
                     photos.push({
                         url: photosJson['data'][j].source,
                         source: 'facebook',
-                        tags: tags
+                        tags: {
+                            tagged: tags,
+                            likes: likes,
+                            comments: comments,
+                            description: description
+                        }
                     });
                 }
-
-                console.dir(photosJson);
 
 
                 if (photosJson['paging'] != undefined) {
@@ -432,10 +442,10 @@ module.exports = {
     getFacebookPhoto: getFacebookPhoto,
     getFacebookAlbum: getFacebookAlbum,
     unsyncFacebookPhotos: unsyncFacebookPhotos,
-    syncFacebookPhotos: syncFacebookPhotos,
-
     getFlickrPhotos: getFlickrPhotos,
     unsyncFlickr: unsyncFlickr,
+
+    syncFacebookPhotos: syncFacebookPhotos,
 
     getPicasaAlbums: getPicasaAlbums,
     splitTextInTags: splitTextInTags
