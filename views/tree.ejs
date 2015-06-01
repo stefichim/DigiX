@@ -2,22 +2,67 @@
 <html>
 <head>
     <link href="stylesheets/arbore.css" rel="stylesheet" type="text/css">
+    <link href="stylesheets/jquery.alerts.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="javascripts/jquery.alerts.js"></script>
 </head>
 <body>
-<div id="control" style="visibility:hidden">
-    <div class="parent">
-        <form>
-            Nume: <input type="text" value="" id="parentText">
-            <select id="parentSelect">
-                <option id="default_value" value=""></option>
-                <option id="father_value" value="father">Father</option>
-                <option id="mother_value" value="mother">Mother</option>
-            </select>
-            <br>
-            <input id="parrentSubmit" type="button" value="Submit" >
-        </form>
+<header>
+    <div class="navbar navbar-default navbar-inverse">
+        <div class="container">
+            <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in as: <%= user.username %> </p>
+
+            <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
+            <a href="tree" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
+
+            <div class="dropdown btn-group btn-default">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="edit_profile">Edit profile</a></li>
+                    <li><a href="facebook">Add account</a></li>
+                    <li class="divider"></li>
+                    <li><a href="http://google.ro">Help</a></li>
+                    <li><a href="logout">Log out</a></li>
+                </ul>
+            </div>
+            <a href="refresh" class="btn navbar-btn btn-default" id="button-refresh"><span class=" glyphicon glyphicon-refresh"></span></a>
+
+            <div class="dropdown btn-group btn-default navbar-btn navbar-right">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span
+                            class="glyphicon glyphicon-chevron-down"></span></a>
+                <ul class="dropdown-menu" style="width:180px">
+                    <li>
+                        <form action="/advanced_search" class="navbar-form navbar-right" role="search">
+                            Description : <input type="text" name="description"><br>
+                            Commented By : <input type="text" name="commented_by"><br>
+                            Comment Content : <input type="text" name="commented_content"><br>
+                            Liked By : <input type="text" name="liked_by"><br>
+                            Persons Tagged : <input type="text" name="persons_tagged"><br>
+                            <button type="submit" id="searchbtn" class="btn btn-default btn_right"><span
+                                        class="glyphicon glyphicon-search"></span></button>
+                        </form>
+                    </li>
+
+                </ul>
+            </div>
+
+
+            <form action="/search_photos_button" class="navbar-form navbar-right" role="search">
+                <div class="form-group">
+                    <input type="text" name="searched_text" class="form-control" placeholder="Search text">
+                </div>
+                <button type="submit" id="searchbtn" class="btn btn-default"><span
+                            class="glyphicon glyphicon-search"></span></button>
+            </form>
+
+
+        </div>
     </div>
+</header>
+<br>
+<div id="control" style="visibility:hidden; width: 500px;">
 </div>
 
 <div id="container">
@@ -39,204 +84,329 @@
 
         var x_constant = 10;
 
-        function addMother(node, name){
-            var mother_node_id = current_node_id.toString();
-            current_node_id++;
-
-            x_space = x_start - x_constant * ((y_start - node.y) / y_space);
-
-            //console.log("CURRENT: x:" + node.x.toString() + " y:" + node.y.toString());
-            //console.log("ADDED  : x:" + (node.x - x_space).toString() + " y:" + (node.y - y_space).toString());
-
-            s.graph.addNode({id: mother_node_id, label: name, x: node.x - x_space, y: node.y - y_space, size: 3, color: '#f00'});
-            s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: mother_node_id});
-            current_edge_id++;
-
+        /* Add to graph */
+        function sendNode(url, myID, fromID, name, type) {
             $.ajax({
-                url: '/ajax',
+                url: url,
                 type: 'post',
                 data: {
                     node: {
-                        myID: mother_node_id,
-                        fromID: node.id,
+                        myID: myID,
+                        fromID: fromID,
                         name: name,
-                        type: "mother"
+                        type: type
                     }
                 },
                 dataType: 'json',
                 success: function (data) {
-                    console.log("SENT DATA");
                 }
             });
+        };
+
+        function sendDeletedNode(url, myID) {
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: {
+                    myID: myID
+                },
+                dataType: 'json',
+                success: function (data) {
+                }
+            });
+        };
+
+        function addMother(node, name){
+            var mother_node_id = current_node_id.toString();
+            current_node_id++;
+
+            x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
+
+            s.graph.addNode({id: mother_node_id, label: name, x: node.x - x_space, y: node.y - y_space, size: 3, color: '#333', gender:'female'});
+            s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: mother_node_id});
+            current_edge_id++;
+
+            s.refresh();
+            sendNode("/ajax", mother_node_id, node.id, name, "mother");
         };
 
         function addFather(node, name){
             var father_node_id = current_node_id.toString();
             current_node_id++;
 
-            x_space = x_start - x_constant * ((y_start - node.y) / y_space);
+            x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
 
-            //console.log("CURRENT: x:" + node.x.toString() + " y:" + node.y.toString());
-            //console.log("Added x:" + (node.x + x_space).toString() + " y:" + (node.y - y_space).toString());
-
-            s.graph.addNode({id: father_node_id, label: name, x: node.x + x_space, y: node.y - y_space, size: 3, color: '#f00'});
+            s.graph.addNode({id: father_node_id, label: name, x: node.x + x_space, y: node.y - y_space, size: 3, color: '#333', gender:'male'});
 
             s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: father_node_id});
             current_edge_id++;
 
-
-            $.ajax({
-                url: '/ajax',
-                type: 'post',
-                data: {
-                    node: {
-                        myID: father_node_id,
-                        fromID: node.id,
-                        name: name,
-                        type: "father"
-                    }
-                },
-                dataType: 'json',
-                success: function (data) {
-                    console.log("SENT DATA");
-                }
-            });
+            s.refresh();
+            sendNode("/ajax", father_node_id, node.id, name, "father");
         };
 
-        function hasMother(node) {
+        function addChild(node, name, gender) {
+            var nodeX, nodeY;
+            if (node.gender == "male") {
+                var leftestNode = getLeftestChildX(node);
+                x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
+
+                if (leftestNode == undefined) {
+                    nodeX = node.x - x_space;
+                    nodeY = node.y + y_space;
+                }
+                else {
+                    nodeX = leftestNode.x - x_space;
+                    nodeY = leftestNode.y;
+                }
+            }
+            else if (node.gender == "female") {
+                var rightestNode = getRightestChildX(node);
+                x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
+                //alert("female" + x_space.toString());
+
+                if (rightestNode == undefined) {
+                    nodeX = node.x + x_space;
+                    nodeY = node.y + y_space;
+                }
+                else {
+                    nodeX = rightestNode.x + x_space;
+                    nodeY = rightestNode.y;
+                }
+            }
+            else {
+                alert("BUG!!!");
+            }
+
+            var child_node_id = current_node_id.toString();
+            current_node_id++;
+
+            //var husbandOfWife = getHusbandOrWife(node);
+
+            s.graph.addNode({id: child_node_id, label: name, x: nodeX, y: nodeY, size: 3, color: '#333', gender: gender});
+
+//            if (husbandOfWife != undefined) {
+//                s.graph.addEdge({id: current_edge_id.toString(), source: child_node_id, target: husbandOfWife.id});
+//                current_edge_id++;
+//            }
+
+            s.graph.addEdge({id: current_edge_id.toString(), source: child_node_id, target: node.id});
+            current_edge_id++;
+
+            s.refresh();
+            var type;
+            if (node.gender == "male") {
+                type = "father";
+            }
+            else {
+                type = "mother";
+            }
+            sendNode("/ajax", child_node_id, node.id, name, type);
+        };
+
+        /* Get from graph */
+        function getMother(node) {
             var edges = s.graph.edges();
             for (var i = 0; i < edges.length; i++) {
-                //alert("mother" + i.toString());
 
                 var source_node = s.graph.nodes(edges[i].source);
                 var target_node = s.graph.nodes(edges[i].target);
 
                 if (node.x == source_node.x && node.y == source_node.y && source_node.x > target_node.x && source_node.y > target_node.y) {
-                    return true;
+                    return target_node;
                 }
             }
-            return false;
+            return undefined;
         };
 
-        function hasFather(node) {
+        function getFather(node) {
             var edges = s.graph.edges();
             for (var i = 0; i < edges.length; i++) {
-                //alert("father" + i.toString());
 
                 var source_node = s.graph.nodes(edges[i].source);
                 var target_node = s.graph.nodes(edges[i].target);
 
                 if (node.x == source_node.x && node.y == source_node.y && source_node.x < target_node.x && source_node.y > target_node.y) {
-                    return true;
+                    return target_node;
                 }
+            }
+            return undefined;
+        };
+
+        function getHusbandOrWife(node) {
+            var edges = s.graph.edges();
+            for (var i = 0; i < edges.length; i++) {
+                var source_node = s.graph.nodes(edges[i].source);
+                var target_node = s.graph.nodes(edges[i].target);
+
+                if (node.x == source_node.x && node.y == source_node.y) {
+                    if (node.gender == 'male') {
+                        return getMother(source_node);
+                    }
+                    return getFather(source_node);
+                }
+            }
+            return undefined;
+        };
+
+        function getLeftestChildX(node) {
+            var leftestX = 100000;
+            var leftestNode = undefined;
+            var edges = s.graph.edges();
+            for (var i = 0; i < edges.length; i++) {
+                var source_node = s.graph.nodes(edges[i].source);
+                var target_node = s.graph.nodes(edges[i].target);
+
+                if (node.x == target_node.x && node.y == target_node.y && target_node.x > source_node.x && source_node.x < leftestX) {
+                    leftestX = source_node.x;
+                    leftestNode = source_node;
+                }
+            }
+
+            if (leftestNode != undefined) {
+                //console.log("LC: X: " + leftestNode.x.toString() + " Y: " + leftestNode.y.toString());
+            }
+
+            return leftestNode;
+        };
+
+        function getRightestChildX(node) {
+            var rightestX = -100000;
+            var rightestNode = undefined;
+            var edges = s.graph.edges();
+            for (var i = 0; i < edges.length; i++) {
+                var source_node = s.graph.nodes(edges[i].source);
+                var target_node = s.graph.nodes(edges[i].target);
+
+                if (node.x == target_node.x && node.y == target_node.y && target_node.x < source_node.x && source_node.x > rightestX) {
+                    //alert(source_node.label);
+                    rightestX = source_node.x;
+                    rightestNode = source_node;
+                }
+            }
+
+            //alert(rightestX);
+
+            return rightestNode;
+        };
+
+        function canBeRemoved(node) {
+            if (s.graph.degree(node.id) <= 1 && node.id != '0') {
+                return true;
             }
             return false;
         };
 
-        function addParrent() {
+        function removeNode(node) {
+            if (canBeRemoved(node)) {
+                s.graph.dropNode(node.id);
+            }
+            s.refresh();
+
+            sendNode('/post/delete/node', node.id);
+        };
+
+        /* Calls from html */
+        function submitMother() {
             if (clicked_node == undefined) return;
-            document.getElementById("control").style.visibility = "visible";
+            console.log("Submit mother");
 
-            var select = document.getElementById("parentSelect");
-            var name = document.getElementById("parentText").value;
-            var selectedOption = select.options[select.selectedIndex].value;
 
-            if (selectedOption == "mother") {
-                console.log("add mother");
-
+            var name = prompt("Please enter your mother's name", "Gigela");
+            if (name != null) {
                 addMother(clicked_node, name);
-                document.getElementById("default_value").selected = true;
-                document.getElementById("mother_value").disabled = true;
-            }
 
-            else if (selectedOption == "father") {
-                console.log("add father");
-
-                addFather(clicked_node, name);
-                document.getElementById("default_value").selected = true;
-                document.getElementById("father_value").disabled = true;
-            }
-
-            document.getElementById("default_value").selected = true;
-
-            if (document.getElementById("mother_value").disabled == true && document.getElementById("father_value").disabled == true){
-                document.getElementById("parrentSubmit").disabled = true;
+                child = document.getElementById("motherSubmit");
+                child.parentNode.removeChild(child);
             }
         };
 
-        s.graph.addNode({id: '0', label: '0', x: x_start, y: y_start, size: 3, color: '#f00'});
+        function submitFather() {
+            if (clicked_node == undefined) return;
 
-        $.ajax({
-            url: '/ajax',
-            type: 'post',
-            data: {
-                node: {
-                    myID: "0",
-                    fromID: "",
-                    name: "pavaloi e ratat",
-                    type: "root"
-                }
-            },
-            dataType: 'json',
-            success: function (data) {
-                console.log("SENT DATA");
+            console.log("Submit father");
+
+            var name = prompt("Please enter your father's name", "Gigel");
+            if (name != null) {
+                addFather(clicked_node, name);
+
+                child = document.getElementById("fatherSubmit");
+                child.parentNode.removeChild(child);
             }
-        });
+        };
+
+        function submitChild(gender) {
+            if (clicked_node == undefined) return;
+
+            console.log("Submit child");
+            var name = prompt("Please enter your child's name", "Gigi");
+            if (name != null) {
+                addChild(clicked_node, name, gender);
+            }
+        };
+
+        s.graph.addNode({id: '0', label: '<%= user.username %>', x: x_start, y: y_start, size: 3, color: '#333', gender: 'male'});
+        sendNode("/ajax", "0", "", "<%= user.username %>", "root");
 
         s.bind('clickNode', function(e) {
-            console.log("clicked ");
-
             clicked_node = e.data.node;
-            b_has_mother = hasMother(clicked_node);
-            b_has_father = hasFather(clicked_node);
+            clicked_node.color = 'red';
+            s.refresh();
+            document.getElementById("control").innerHTML = '<p>Selected node:  <span id="selectedNode"></span></p><button id="motherSubmit">Add Mother</button><button id="fatherSubmit">Add Father</button><button id="girlSubmit">Add Girl</button><button id="boySubmit">Add Boy</button><button id="delete">Delete</button>';
 
-            console.log("BOOLS: mother:" + b_has_mother.toString() + " father:" + b_has_father.toString());
+            $('#motherSubmit').on('click',function(){
+                submitMother();
+            });
+            $('#fatherSubmit').on('click',function(){
+                submitFather();
+            });
+            $('#girlSubmit').on('click',function(){
+                submitChild("female");
+            });
+            $('#boySubmit').on('click',function(){
+                submitChild("male");
+            });
+            $('#delete').on('click',function(){
+                removeNode(clicked_node);
+            });
 
-            if (b_has_mother && b_has_father) {
-                console.log("both ok");
-                document.getElementById("parrentSubmit").disabled = true;
-                document.getElementById("mother_value").disabled = true;
-                document.getElementById("father_value").disabled = true;
+            document.getElementById("selectedNode").innerHTML = clicked_node.label;
+
+            if (getMother(clicked_node) != undefined) {
+                child = document.getElementById("motherSubmit");
+                child.parentNode.removeChild(child);
             }
-            else if (b_has_mother) {
-                console.log("mother ok");
-
-                document.getElementById("parrentSubmit").disabled = false;
-                document.getElementById("mother_value").disabled = true;
-                document.getElementById("father_value").disabled = false;
+            if (getFather(clicked_node) != undefined) {
+                child = document.getElementById("fatherSubmit");
+                child.parentNode.removeChild(child);
             }
-            else if (b_has_father) {
-                console.log("father ok");
-
-                document.getElementById("parrentSubmit").disabled = false;
-                document.getElementById("father_value").disabled = true;
-                document.getElementById("mother_value").disabled = false;
-            }
-            else {
-                console.log("none ok");
-
-                document.getElementById("parrentSubmit").disabled = false;
-                document.getElementById("father_value").disabled = false;
-                document.getElementById("mother_value").disabled = false;
+            if (!canBeRemoved(clicked_node)) {
+                child = document.getElementById("delete");
+                child.parentNode.removeChild(child);
             }
 
             document.getElementById("control").style.visibility = "visible";
         });
 
+        s.bind('clickStage', function(e) {
+            clicked_node.color = "#333";
+            s.refresh();
+            clicked_node = undefined;
+            document.getElementById("control").style.visibility = "hidden";
+        });
+
         s.settings({
+            font    : "consolas",
             minNodeSize : 6,
-            maxNodeSize : 30,
+            maxNodeSize : 15,
             labelThreshold : 0,
-            labelSize : "proportional"
+            labelSize : "proportional",
+            nodeHoverColor : "default",
+            simpleHover: true,
+            labelHoverShadow: "node"
         });
 
         s.refresh();
-
-        $('#parrentSubmit').on('click',function(){
-            console.log("Parrent submit");
-            addParrent();
-            s.refresh();
-        });
     });
 </script>
 </body>

@@ -116,15 +116,32 @@ function getTreeTags(user, name){
         case "niece" : return niece(user);
         case "grandpa": return grandpa(user);
         case "grandma": return grandma(user);
-        default: return;
+        default: return [];
     }
+}
+
+function deleteNode(user, nodeID, callback){
+    var tree=user.tree;
+
+    for (i = user.tree.length - 1; i >= 0; i--) {
+        if(tree[i].myID==nodeID){
+            user.tree.splice(i, 1);
+        }
+    }
+    for(i=user.tree.length-1;i>=0;i--){
+        if(tree[i].mother==nodeID) user.tree[i].mother="";
+        else if(tree[i].father==nodeID) user.tree[i].father="";
+    }
+    user.save(function(err){
+        if(err) console.dir(err);
+        callback;
+    })
 }
 
 
 
 
-
-
 module.exports = {
-    getTreeTags: getTreeTags
+    getTreeTags: getTreeTags,
+    deleteNode: deleteNode
 };
