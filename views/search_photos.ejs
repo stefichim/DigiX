@@ -17,13 +17,17 @@
 <header>
     <div class="navbar navbar-default navbar-inverse">
         <div class="container">
-            <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in as: <%= user.username %> </p>
+            <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in
+                as: <%= user.username %> </p>
 
-            <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
-            <a href="#" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
+            <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span
+                        class="glyphicon glyphicon-picture"></span></a>
+            <a href="#" class="btn navbar-btn btn-default" id="button-family-tree"><span
+                        class="glyphicon glyphicon-tree-conifer"></span></a>
 
             <div class="dropdown btn-group btn-default">
-                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span
+                            class="glyphicon glyphicon-cog"></span></a>
                 <ul class="dropdown-menu">
                     <li><a href="edit_profile">Edit profile</a></li>
                     <li><a href="facebook">Add account</a></li>
@@ -32,13 +36,34 @@
                     <li><a href="logout">Log out</a></li>
                 </ul>
             </div>
-            <a href="refresh" class="btn navbar-btn btn-default" id="button-refresh"><span class=" glyphicon glyphicon-refresh"></span></a>
+            <a href="refresh" class="btn navbar-btn btn-default" id="button-refresh"><span
+                        class=" glyphicon glyphicon-refresh"></span></a>
+
+            <div class="dropdown btn-group btn-default navbar-btn navbar-right">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span
+                            class="glyphicon glyphicon-chevron-down"></span></a>
+                <ul class="dropdown-menu" style="width:180px">
+                    <li>
+                        <form action="/advanced_search" class="navbar-form navbar-right" role="search">
+                            Description : <input type="text" name="description"><br>
+                            Commented By : <input type="text" name="commented_by"><br>
+                            Comment Content : <input type="text" name="commented_content"><br>
+                            Liked By : <input type="text" name="liked_by"><br>
+                            Persons Tagged : <input type="text" name="persons_tagged"><br>
+                            <button type="submit" id="searchbtn" class="btn btn-default btn_right"><span
+                                        class="glyphicon glyphicon-search"></span></button>
+                        </form>
+                    </li>
+
+                </ul>
+            </div>
 
             <form action="/search_photos_button" class="navbar-form navbar-right" role="search">
                 <div class="form-group">
                     <input type="text" name="searched_text" class="form-control" placeholder="Search text">
                 </div>
-                <button type="submit" id="searchbtn" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                <button type="submit" id="searchbtn" class="btn btn-default"><span
+                            class="glyphicon glyphicon-search"></span></button>
             </form>
         </div>
     </div>
@@ -51,7 +76,7 @@
     <div class="pictures">
 
         <div id="visible">
-            <% for(var i=0; i<photos.length; i++) {%>
+            <% for(var i = 0; i < photos.length; i++) { %>
             <a href=<%- photos[i] %>><img src=<%- photos[i] %> height=200px></a>
             <% } %>
         </div>
