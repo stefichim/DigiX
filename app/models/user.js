@@ -34,10 +34,10 @@ var userSchema = mongoose.Schema({
         url: String,
         tags: {
             description: [String],
-            comments: {
+            comments: [{
                 author: [String],
                 content: [String]
-            },
+            }],
             likes: [String],
             tagged: [String]
         },

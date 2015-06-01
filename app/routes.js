@@ -56,6 +56,24 @@ module.exports = function (app, passport) {
                         });
                     })
                 });
+
+                //if (user.instagram.access_token){
+                //    for (var i = user.photos.length - 1; i >= 0; i--) {
+                //        if (user.photos[i].source == 'Instagram') {
+                //            user.photos.splice(i, 1);
+                //        }
+                //    }
+                //    getInstagramPictures(req, res, function (err, result) {
+                //        if (err) {
+                //            console.log(err)
+                //        }
+                //    });
+                //    user.save(function (err) {
+                //        if (err) {
+                //            console.dir(err);
+                //        }
+                //    });
+                //}
             }
         });
     });
@@ -142,7 +160,7 @@ module.exports = function (app, passport) {
 
             var queryString = req.query.searched_text;
             if (queryString.length == 0) {
-                user.current_picture_index = -1;
+                user.current_picture_index = 0;
                 user.save(function (err) {
                     if (err) {
                         console.dir(err);
@@ -151,16 +169,37 @@ module.exports = function (app, passport) {
                 res.redirect('/profile');
             }
             else {
-                var words = queryString.toLowerCase().split(" ");
+                //var words = queryString.toLowerCase().split(" ");
+                var words = api.splitTextInTags(queryString);
 
                 var i;
                 for (i = 0; i < user.photos.length; i++) {
-                    var tags = user.photos[i].tags.filter(function (n) {
-                        return words.indexOf(n) != -1
+
+                    var photoTags = [];
+                    photoTags.push.apply(photoTags, user.photos[i].tags.description);
+                    for (var j = 0; j < user.photos[i].tags.comments.length; j++){
+                        photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].author);
+                        photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].content);
+                    }
+                    photoTags.push.apply(photoTags, user.photos[i].tags.likes);
+                    photoTags.push.apply(photoTags, user.photos[i].tags.tagged);
+
+                    photoTags = photoTags.filter(function (value, index, self) {
+                        return self.indexOf(value) === index;
                     });
+
+                    var tagsScore = 0;
+                    for (var j = 0; j < words.length; j++){
+                        for (var k = 0; k < photoTags.length; k++){
+                            if (photoTags[k].indexOf(words[j]) > -1){
+                                tagsScore++;
+                            }
+                        }
+                    }
+
                     var photo = {
                         url: user.photos[i].url,
-                        score: tags.length
+                        score: tagsScore
                     }
 
                     user.searched_photos.push(photo);
@@ -169,6 +208,18 @@ module.exports = function (app, passport) {
                 user.searched_photos.sort(function (a, b) {
                     return parseFloat(b.score) - parseFloat(a.score)
                 });
+
+                var maxScore = 0;
+                if (user.searched_photos.length){
+                    maxScore = user.searched_photos[0].score;
+                }
+
+                for (var i = 0; i < user.searched_photos.length; i++){
+                    if (user.searched_photos[i].score < maxScore / 2){
+                        user.searched_photos.splice(i, 1);
+                        i--;
+                    }
+                }
 
                 user.save(function (err) {
                     if (err) {
@@ -495,51 +546,73 @@ module.exports = function (app, passport) {
                         var my_medias = [];
                         async.each(medias, function (media, callback) {
                             var url = media.images.standard_resolution.url;
-                            var tags = {}
+                            var tags = {};
+                            tags.description = [];
+                            tags.comments = [];
+                            tags.likes =[];
+                            tags.tagged = [];
                             async.parallel([
 
                                 function (_callback) {
                                     async.each(media.comments.data, function (comment, _cb) {
-                                        tags[comment.from.username.toLowerCase()] = true;
-                                        var words = comment.from.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        var comm = [];
+                                        comm.author = [];
+                                        comm.author.push.apply(comm.author, api.splitTextInTags(comment.from.username));
+                                        comm.author.push.apply(comm.author, api.splitTextInTags(comment.from.full_name));
+
+                                        comm.content = [];
+                                        comm.content.push.apply(comm.content, api.splitTextInTags(comment.text));
+
+                                        tags.comments.push(comm);
+
+                                        //tags[comment.from.username.toLowerCase()] = true;
+                                        //var words = comment.from.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
-                                function (_callback) {
-                                    async.each(media.comments.data, function (comment, _cb) {
-                                        var words = comment.text.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
-                                        _cb();
-                                    }, _callback);
-                                },
+                                //function (_callback) {
+                                //    async.each(media.comments.data, function (comment, _cb) {
+                                //        var words = comment.text.split(" ");
+                                //        words.forEach(function (element, index, array) {
+                                //            tags[element.toLowerCase()] = true;
+                                //        });
+                                //        _cb();
+                                //    }, _callback);
+                                //},
                                 function (_callback) {
                                     async.each(media.likes.data, function (like, _cb) {
-                                        tags[like.username] = true;
-                                        var words = like.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        tags.likes.push.apply(tags.likes, api.splitTextInTags(like.username));
+                                        tags.likes.push.apply(tags.likes, api.splitTextInTags(like.full_name));
+
+                                        //tags[like.username] = true;
+                                        //var words = like.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
                                 function (_callback) {
                                     async.each(media.users_in_photo, function (user, _cb) {
-                                        tags[user.user.username.toLowerCase()] = true;
-                                        var words = user.user.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(user.user.username));
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(user.user.full_name));
+
+                                        //tags[user.user.username.toLowerCase()] = true;
+                                        //var words = user.user.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
                                 function (_callback) {
                                     async.each(media.tags, function (tag, _cb) {
-                                        tags[tag.toLowerCase()] = true;
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(tag));
+
+                                        //tags[tag.toLowerCase()] = true;
                                         //tags[tag.toLowerCase()]=true;
                                         _cb();
                                     }, _callback);
@@ -547,7 +620,7 @@ module.exports = function (app, passport) {
                             ], function () {
                                 my_medias.push({
                                     'url': url,
-                                    'tags': Object.keys(tags),
+                                    'tags': tags, //Object.keys(tags),
                                     'source': 'Instagram'
                                 });
                                 callback();
@@ -730,7 +803,114 @@ module.exports = function (app, passport) {
 
         res.redirect('/facebook');
     });
-};
+
+    app.get('/advanced_search', isLoggedIn, function (req, res) {
+            User.findOne({'username': req.user.username}, function (err, user) {
+                    user.current_picture_search_index = 0;
+                    user.searched_photos.length = 0;
+
+                    var description_tags = api.splitTextInTags(req.query.description);
+                    var commented_by_tags = api.splitTextInTags(req.query.commented_by);
+                    var commented_content_tags = api.splitTextInTags(req.query.commented_content);
+                    var liked_by_tags = api.splitTextInTags(req.query.liked_by);
+                    var persons_tagged_tags = api.splitTextInTags(req.query.persons_tagged);
+
+
+                    if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
+                        user.current_picture_index = -1;
+                        user.save(function (err) {
+                            if (err) {
+                                console.dir(err);
+                            }
+                        });
+                        res.redirect('/profile');
+                    } else {
+                        var photos = user.photos;
+
+                        for (var i = 0; i < photos.length; i++) {
+                            photos[i].score = 0;
+                            for (var j = 0; j < description_tags.length; j++) {
+                                for (var k = 0; k < photos[i].tags.description.length; k++) {
+                                    if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
+                                        photos[i].score++;
+                                    }
+                                }
+                            }
+
+                            if (commented_by_tags.length > 0 || commented_content_tags.length > 0) {
+
+                                for (var l = 0; l < photos[i].tags.comments.length; l++) {
+                                    for (j = 0; j < commented_by_tags.length; j++) {
+                                        for (k = 0; k < photos[i].tags.comments[l].author.length; k++) {
+                                            if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
+                                                photos[i].score++;
+                                            }
+                                        }
+                                    }
+
+                                    for (j = 0; j < commented_content_tags.length; j++) {
+                                        for (k = 0; k < photos[i].tags.comments[l].content.length; k++) {
+                                            if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
+                                                photos[i].score++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            for (j = 0; j < liked_by_tags.length; j++) {
+                                for (k = 0; k < photos[i].tags.likes.length; k++) {
+                                    if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
+                                        photos[i].score++;
+                                    }
+                                }
+                            }
+
+                            for (j = 0; j < persons_tagged_tags.length; j++) {
+                                for (k = 0; k < photos[i].tags.tagged.length; k++) {
+                                    if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
+                                        photos[i].score++;
+                                    }
+                                }
+                            }
+                        }
+
+                        var searched_photos = [];
+
+                        for (i = 0; i < photos.length; i++) {
+                            if (photos[i].score > 0) {
+                                searched_photos.push(photos[i]);
+                            }
+                        }
+
+                        photos.sort(function (a, b) {
+                            if (a.score < b.score)
+                                return 1;
+                            else if (a.score > b.score)
+                                return -1;
+                            else
+                                return 0;
+                        });
+
+                        user.searched_photos = searched_photos;
+
+                        user.save(function (err) {
+                            if (err) {
+                                console.dir(err);
+                            }
+
+                            res.redirect('/search_photos');
+                        });
+                    }
+                }
+            )
+            ;
+        }
+    )
+    ;
+}
+;
 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())

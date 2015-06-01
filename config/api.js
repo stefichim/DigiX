@@ -366,12 +366,8 @@ function getPicasaPhotoTags(profile_id, album_id, photo_id, token, callback) {
             var photoInfoJson = JSON.parse(body);
 
             var titleTags = splitTextInTags(photoInfoJson.feed.title['$t']);
-            console.log(photoInfoJson.feed.title['$t']);
-            console.log('title ' + titleTags);
 
             var descriptionTags = splitTextInTags(photoInfoJson.feed.subtitle['$t']);
-            console.log(photoInfoJson.feed.subtitle['$t']);
-            console.log('description ' + descriptionTags)
             var commentsTags = [];
 
             for (var i = 0; photoInfoJson.feed.entry != undefined && i < photoInfoJson.feed.entry.length; i++) {
@@ -379,12 +375,10 @@ function getPicasaPhotoTags(profile_id, album_id, photo_id, token, callback) {
                 var commentTextTags = splitTextInTags(photoInfoJson.feed.entry[i].content['$t']);
 
                 commentsTags.push({
-                    authorTags: authorTags,
-                    textTags: commentTextTags
+                    author: authorTags,
+                    content: commentTextTags
                 });
             }
-
-            console.log(commentsTags);
 
             callback(titleTags, descriptionTags, commentsTags);
         }
