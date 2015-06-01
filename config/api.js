@@ -185,25 +185,89 @@ function nextPictureFlickr(data, next) {
     var photoUrl = 'https://farm' + rspPhoto.farm + '.staticflickr.com/'
         + rspPhoto.server + '/' + rspPhoto.id + '_' + rspPhoto.secret
         + '.jpg';
-    var url = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.tags.getListPhoto' +
-            '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1'
-        , oauth = {
+
+
+    var describeUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.getInfo' +
+            '&' + 'photo_id=' + rspPhoto.id + '&secret='+rspPhoto.secret+ '&format=json&nojsoncallback=1',
+        oauth = {
             consumer_key: privateInfo.flickr.consumer_key
             , consumer_secret: privateInfo.flickr.consumer_secret
         };
-    request.get({url: url, oauth: oauth}, function (e, r, body) {
-        if (e) {
+
+    request.get({url: describeUrl, oauth: oauth}, function(e,r,body){
+        if(e){
             console.dir(e);
             return;
         }
-        var tags = JSON.parse(body);
-        var realTags = [];
-        for (j = 0; j < tags.photo.tags.tag.length; j++) {
-            realTags.push(tags.photo.tags.tag[j].raw);
-        }
-        data.user.photos.push({'url': photoUrl,'source':'flickr', 'tags': realTags});
-        data.count++;
-        nextPictureFlickr(data, next);
+
+        var info=JSON.parse(body);
+        var description=info.photo.description._content;
+        var splitDescription="";
+        if(description!="") splitDescription=splitTextInTags(description);
+
+        var tagUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.tags.getListPhoto' +
+            '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1';
+        request.get({url: tagUrl, oauth: oauth}, function (e, r, body) {
+            if (e) {
+                console.dir(e);
+                return;
+            }
+            var tags = JSON.parse(body);
+            var realTags = [];
+
+            for (j = 0; j < tags.photo.tags.tag.length; j++) {
+                realTags.push(tags.photo.tags.tag[j].raw);
+            }
+            //console.log(rspPhoto);
+            var commentsUrl='https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.comments.getList' +
+                '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1' ;
+
+
+            request.get({url: commentsUrl, oauth: oauth}, function (e, r, body) {
+                var comments=JSON.parse(body);
+
+                var authorList="",commentList="";
+                var commentsArray= {
+                    'author': [],
+                    'content': []
+                    };
+
+                if(comments.comments!=undefined){
+                    console.log(comments.comments.comment.length);
+                    for(i=0;i<comments.comments.comment.length;i++) {
+                        authorList = splitTextInTags(comments.comments.comment[i].realname);
+                        commentList=splitTextInTags(comments.comments.comment[i]._content);
+                        for(j=0;j<authorList.length;j++) commentsArray.author.push(authorList[j]);
+                        for(j=0;j<commentList.length;j++) commentsArray.content.push(commentList[j]);
+                    }
+                }
+
+                var peopleUrl='https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.people.getList' +
+                    '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1' ;
+
+                request.get({url: peopleUrl, oauth: oauth}, function (e, r, body) {
+                    var people=JSON.parse(body).people;
+                    if(people!=undefined) {
+                        for (i = 0; i < people.total; i++) {
+                            var splitName=splitTextInTags(people.person[i].realname);
+                            realTags.push.apply(realTags,splitName);
+                            console.log(realTags);
+                        }
+                    }
+
+                    data.user.photos.push({
+                        'url': photoUrl, 'source': 'flickr', 'tags': {
+                            'description': splitDescription,
+                            'tagged': realTags,
+                            'comments': commentsArray
+                        }
+                    });
+                    data.count++;
+                    nextPictureFlickr(data, next);
+                });
+            });
+        });
+
     });
 }
 function unsyncFlickr(user, callback ){
@@ -217,6 +281,7 @@ function unsyncFlickr(user, callback ){
     user.flickr.token_secret=undefined;
     callback(user);
 }
+
 
 function getPicasaAlbums(profile_id, token, user, callback) {
     var url = 'https://picasaweb.google.com/data/feed/api/user/' + profile_id + '?alt=json&v=2&access=all&access_token=' + token;
@@ -339,9 +404,8 @@ function splitTextInTags(text) {
     }
 
     if (i - tagFirstPos > 0) {
-        tags.push(text.substring(tagFirstPos, i));
+        tags.push(text.substring(tagFirstPos, i).toLowerCase());
     }
-
     return tags;
 }
 
@@ -368,5 +432,6 @@ module.exports = {
     getFlickrPhotos: getFlickrPhotos,
     unsyncFlickr: unsyncFlickr,
 
-    getPicasaAlbums: getPicasaAlbums
+    getPicasaAlbums: getPicasaAlbums,
+    splitTextInTags: splitTextInTags
 };
