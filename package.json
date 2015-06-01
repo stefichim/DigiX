@@ -27,6 +27,7 @@
     "request": "~2.55.0",
     "serve-favicon": "~2.2.0",
     "querystring" : "0.2.0",
-    "sigma" : "*"
+    "sigma" : "*",
+    "passport-flickr": "*"
   }
 }

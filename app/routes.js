@@ -54,16 +54,15 @@ module.exports = function (app, passport) {
 
                                 refreshInstagramPhotos(req, res, user, function (user) {
                                     api.getPicasaAlbums(user.google.user_id, user.google.access_token, user, function (user) {
-
-                                        res.redirect('profile');
+                                        api.getFlickrPhotos(req.user.username, function() {
+                                            res.redirect('profile');
+                                        });
                                     });
                                 })
                             });
                         });
                     })
                 });
-
-
             }
         });
     });
@@ -183,8 +182,8 @@ module.exports = function (app, passport) {
                     var tagsScore = 0;
                     for (var j = 0; j < words.length; j++) {
                         for (var k = 0; k < photoTags.length; k++) {
-                            if (photoTags[k].length == 2) {
-                                if (photoTags[k].indexOf(words[j]) == 0) {
+                            if (photoTags[k].length == 2){
+                                if (photoTags[k].indexOf(words[j]) == 0){
                                     tagsScore++;
                                 }
                             } else {
@@ -243,6 +242,7 @@ module.exports = function (app, passport) {
             }
 
 
+
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
             }
@@ -295,6 +295,8 @@ module.exports = function (app, passport) {
     app.get('/arbore', isLoggedIn, function (req, res) {
         res.render('arbore.ejs', {});
     });
+
+
 
 
     app.post('/ajax', isLoggedIn, function (req, res) {
@@ -350,60 +352,61 @@ module.exports = function (app, passport) {
     });
 
 
+
     function updateTree(user, node, res) {
         var found = false;
 
-        if (node.type == "root") {
-            user.tree.push({'myID': node.myID, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
+        if(node.type=="root") {
+            user.tree.push({ 'myID':node.myID, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
             user.save(function (err) {
                 if (err) console.dir(err);
             })
             return;
         }
 
-        for (i = 0; i < user.tree.length; i++) {
-            if (found == true) return;
-            if (user.tree[i].myID = node.fromID) {
-                var newNode = {
-                    myID: node.myID,
-                    name: node.name,
-                    mother: "",
-                    father: "",
-                    genre: ""
-                }
-                if (node.type == "mother") {
-                    user.tree[i].mother = node.myID;
-                    newNode.genre = "female";
-                    user.tree.push(newNode);
-                    found = true;
-                }
-                else if (node.type == "father") {
-                    user.tree[i].father = node.myID;
-                    newNode.genre = "male";
-                    user.tree.push(newNode);
-                    found = true;
-                }
-                else if (node.type == "girl") {
-                    newNode.mother = node.fromID;
-                    newNode.genre = "female";
-                    user.tree.push(newNode);
-                    found = true;
-                }
-                else if (node.type == "boy") {
-                    newNode.father = node.fromID;
-                    newNode.genre = "male";
-                    user.tree.push(newNode);
-                    found = true;
-                }
+            for (i = 0; i < user.tree.length; i++) {
+                if (found == true) return;
+                if (user.tree[i].myID = node.fromID) {
+                    var newNode = {
+                        myID: node.myID,
+                        name: node.name,
+                        mother: "",
+                        father: "",
+                        genre: ""
+                    }
+                    if (node.type == "mother") {
+                        user.tree[i].mother = node.myID;
+                        newNode.genre = "female";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+                    else if (node.type == "father") {
+                        user.tree[i].father = node.myID;
+                        newNode.genre = "male";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+                    else if (node.type == "girl") {
+                        newNode.mother = node.fromID;
+                        newNode.genre = "female";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
+                    else if (node.type == "boy") {
+                        newNode.father = node.fromID;
+                        newNode.genre = "male";
+                        user.tree.push(newNode);
+                        found = true;
+                    }
 
-            }
-            if (found == true) {
-                user.save(function (err) {
-                    if (err) console.dir(err);
+                }
+                if (found == true) {
+                    user.save(function (err) {
+                        if (err) console.dir(err);
 
-                })
+                    })
+                }
             }
-        }
 
     }
 
@@ -413,7 +416,6 @@ module.exports = function (app, passport) {
             if (err || !user)
                 return done(err);
             api.unsyncFlickr(user, function (user) {
-                console.log("bere");
                 user.save(function (err) {
                     if (err)
                         throw  err;
@@ -423,52 +425,12 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.get('/sync/Flickr', isLoggedIn, function (req, res) {
-        var tempUsername = req.user;
-        var oauth = {
-                callback: 'http://localhost:2080/flickr/code'
-                , consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret
-            }
-            , url = 'https://www.flickr.com/services/oauth/request_token';
+    app.get('/sync/Flickr', passport.authenticate('flickr'));
 
-        request.post({url: url, oauth: oauth}, function (e, r, body) {
-            var req_data = qs.parse(body);
-            var uri = 'https://www.flickr.com/services/oauth/authorize' + '?' +
-                qs.stringify({oauth_token: req_data.oauth_token});
-            res.redirect(uri);
-            app.get('/flickr/code', function (req, res) {
-                var oauth =
-                    {
-                        consumer_key: privateInfo.flickr.consumer_key
-                        , consumer_secret: privateInfo.flickr.consumer_secret
-                        , token: req.query.oauth_token
-                        , token_secret: req_data.oauth_token_secret
-                        , verifier: req.query.oauth_verifier
-                    }
-                    , url = 'https://www.flickr.com/services/oauth/access_token'
-                    ;
-
-                request.post({url: url, oauth: oauth}, function (e, r, body) {
-
-                    var perm_data = qs.parse(body);
-
-                    var credentials = {
-                        username: tempUsername.username,
-                        oauth_token: perm_data.oauth_token,
-                        oauth_token_secret: perm_data.oauth_token_secret,
-                        nsid: perm_data.user_nsid
-                    };
-                    updateFlickrCredentials(credentials, res);
-
-                });
-
-
-            });
-
-        });
-
-    });
+    app.get('/flickr/code', passport.authenticate('flickr', {
+        successRedirect: '/flickr',
+        failureRedirect: '/logout'
+    }));
 
     function updateFlickrCredentials(credentials, next) {
 
@@ -484,6 +446,8 @@ module.exports = function (app, passport) {
         });
 
     }
+
+
 
 
     //----------------------------------------------------------
@@ -526,6 +490,7 @@ module.exports = function (app, passport) {
                             });
                         });
                     });
+
 
 
                 });
@@ -1037,6 +1002,7 @@ module.exports = function (app, passport) {
     )
     ;
 }
+;
 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
