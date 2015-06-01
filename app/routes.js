@@ -450,6 +450,8 @@ module.exports = function (app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
+                console.log("NORBI");
+                console.log(oauth);
                 request.post({url: url, oauth: oauth}, function (e, r, body) {
                     var perm_data = qs.parse(body);
                     var credentials = {

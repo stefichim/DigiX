@@ -153,6 +153,7 @@ function getFlickrPhotos(username, callback) {
             console.dir(err);
             return;
         }
+        if(user.flickr.nsid==undefined) return callback();
         for (i = user.photos.length - 1; i >= 0; i--) {
             if (user.photos[i].source == 'flickr') {
                 user.photos.splice(i, 1);
