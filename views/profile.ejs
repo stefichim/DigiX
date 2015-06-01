@@ -2,42 +2,37 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>DigiX</title>
-    <meta name="description" content="First page">
+	<meta charset="utf-8">
+	<title>DigiX</title>
+	<meta name="description" content="First page">
 
-    <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="stylesheets/profile.css">
-    <script src="include/jquery/jquery-1.11.2.min.js"></script>
-    <script src="include/bootstrap/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="stylesheets/profile.css">
+	<script src="include/jquery/jquery-1.11.2.min.js"></script>
+	<script src="include/bootstrap/js/bootstrap.min.js"></script>
 </head>
 
 <body>
-<header>
-    <div class="navbar navbar-default navbar-inverse">
-        <div class="container">
-            <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in
-                as: <%= user.username %> </p>
+	<header>
+		<div class="navbar navbar-default navbar-inverse">
+			<div class="container">
+                <p class="navbar-text navbar-left" style="color:white;margin-right:20px;">Logged in as: <%= user.username %> </p>
 
-            <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span
-                        class="glyphicon glyphicon-picture"></span></a>
-            <a href="arbore" class="btn navbar-btn btn-default" id="button-family-tree"><span
-                        class="glyphicon glyphicon-tree-conifer"></span></a>
+                <a href="profile/button" class="btn navbar-btn btn-default" id="button-images-slideshare"><span class="glyphicon glyphicon-picture"></span></a>
+				<a href="arbore" class="btn navbar-btn btn-default" id="button-family-tree"><span class="glyphicon glyphicon-tree-conifer"></span></a>
 
-            <div class="dropdown btn-group btn-default">
-                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span
-                            class="glyphicon glyphicon-cog"></span></a>
-                <ul class="dropdown-menu">
-                    <li><a href="edit_profile">Edit profile</a></li>
-                    <li><a href="facebook">Add account</a></li>
-                    <li class="divider"></li>
-                    <li><a href="http://google.ro">Help</a></li>
-                    <li><a href="logout">Log out</a></li>
-                </ul>
-            </div>
-            <a href="refresh" class="btn navbar-btn btn-default" id="button-refresh"><span
-                        class=" glyphicon glyphicon-refresh"></span></a>
+				<div class="dropdown btn-group btn-default">
+    				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"></span></a>
+    				<ul class="dropdown-menu">
+        				<li><a href="edit_profile">Edit profile</a></li>
+        				<li><a href="facebook">Add account</a></li>
+        				<li class="divider"></li>
+        				<li><a href="http://google.ro">Help</a></li>
+        				<li><a href="logout">Log out</a></li>
+    				</ul>
+				</div>
+				<a href="refresh" class="btn navbar-btn btn-default" id="button-refresh"><span class=" glyphicon glyphicon-refresh"></span></a>
 
             <div class="dropdown btn-group btn-default navbar-btn navbar-right">
                 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span

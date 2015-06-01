@@ -7,6 +7,7 @@ var async = require('../node_modules/async');
 var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 var api = require('../config/api');
+var treeF= require('../config/treeFunctions');
 
 module.exports = function (app, passport) {
     app.get('/', function (req, res) {
@@ -46,7 +47,7 @@ module.exports = function (app, passport) {
                             throw  err;
                         api.syncFacebookPhotos(user, function (user) {
                             user.save(function (err) {
-                                if (err) {
+                                if (err){
                                     res.redirect('logout');
                                     throw  err;
                                 }
@@ -55,6 +56,24 @@ module.exports = function (app, passport) {
                         });
                     })
                 });
+
+                //if (user.instagram.access_token){
+                //    for (var i = user.photos.length - 1; i >= 0; i--) {
+                //        if (user.photos[i].source == 'Instagram') {
+                //            user.photos.splice(i, 1);
+                //        }
+                //    }
+                //    getInstagramPictures(req, res, function (err, result) {
+                //        if (err) {
+                //            console.log(err)
+                //        }
+                //    });
+                //    user.save(function (err) {
+                //        if (err) {
+                //            console.dir(err);
+                //        }
+                //    });
+                //}
             }
         });
     });
@@ -141,7 +160,7 @@ module.exports = function (app, passport) {
 
             var queryString = req.query.searched_text;
             if (queryString.length == 0) {
-                user.current_picture_index = -1;
+                user.current_picture_index = 0;
                 user.save(function (err) {
                     if (err) {
                         console.dir(err);
@@ -150,16 +169,37 @@ module.exports = function (app, passport) {
                 res.redirect('/profile');
             }
             else {
-                var words = queryString.toLowerCase().split(" ");
+                //var words = queryString.toLowerCase().split(" ");
+                var words = api.splitTextInTags(queryString);
 
                 var i;
                 for (i = 0; i < user.photos.length; i++) {
-                    var tags = user.photos[i].tags.filter(function (n) {
-                        return words.indexOf(n) != -1
+
+                    var photoTags = [];
+                    photoTags.push.apply(photoTags, user.photos[i].tags.description);
+                    for (var j = 0; j < user.photos[i].tags.comments.length; j++){
+                        photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].author);
+                        photoTags.push.apply(photoTags, user.photos[i].tags.comments[j].content);
+                    }
+                    photoTags.push.apply(photoTags, user.photos[i].tags.likes);
+                    photoTags.push.apply(photoTags, user.photos[i].tags.tagged);
+
+                    photoTags = photoTags.filter(function (value, index, self) {
+                        return self.indexOf(value) === index;
                     });
+
+                    var tagsScore = 0;
+                    for (var j = 0; j < words.length; j++){
+                        for (var k = 0; k < photoTags.length; k++){
+                            if (photoTags[k].indexOf(words[j]) > -1){
+                                tagsScore++;
+                            }
+                        }
+                    }
+
                     var photo = {
                         url: user.photos[i].url,
-                        score: tags.length
+                        score: tagsScore
                     }
 
                     user.searched_photos.push(photo);
@@ -168,6 +208,18 @@ module.exports = function (app, passport) {
                 user.searched_photos.sort(function (a, b) {
                     return parseFloat(b.score) - parseFloat(a.score)
                 });
+
+                var maxScore = 0;
+                if (user.searched_photos.length){
+                    maxScore = user.searched_photos[0].score;
+                }
+
+                for (var i = 0; i < user.searched_photos.length; i++){
+                    if (user.searched_photos[i].score < maxScore / 2){
+                        user.searched_photos.splice(i, 1);
+                        i--;
+                    }
+                }
 
                 user.save(function (err) {
                     if (err) {
@@ -189,6 +241,7 @@ module.exports = function (app, passport) {
             for (i = parseInt(user.current_picture_search_index); i < user.searched_photos.length && i < (parseInt(user.current_picture_search_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                 my_pictures.push(user.searched_photos[i].url);
             }
+
 
 
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
@@ -241,71 +294,112 @@ module.exports = function (app, passport) {
 
 
     app.get('/arbore', isLoggedIn, function (req, res) {
-        console.log("ceva");
         res.render('arbore.ejs', {});
     });
 
 
-    function changeSons(node, type, user, res) {
-        if (user.tree.length == 0) changeMyself(user, node, res);
-        else {
-            for (i = 0; i < user.tree.length; i++) {
-                console.log(user.tree[i].myId);
-                console.log(node.relId);
-                if (user.tree[i].myId == node.relId) {
-                    console.log("pavaloi");
-                    if (type == "mother") user.tree[i].mother = String(node.myId);
-                    else user.tree[i].father = String(node.myId);
-                    changeMyself(user, node, res);
-                }
-            }
-        }
-    }
-
-    function changeMyself(user, node, res) {
-        var found = false;
-        for (i = 0; i < user.tree.length; i++) {
-            if (user.tree[i].myId == node.myId) {
-                console.log("here");
-                user.tree[i].children.push(node.relId);
-                found = true;
-            }
-        }
-
-        if (found == false) {
-            user.tree.push({
-                'myId': node.myId,
-                'name': node.name,
-                'mother': "",
-                'father': "",
-                'myType': node.type,
-                'children': [node.child]
-            });
-            console.log("inserez");
-            console.log(user.tree[0]);
-
-            user.save(function (err) {
-                console.log(user);
-                console.log("ceva");
-                if (err) {
-                    console.dir(err);
-                }
-
-            });
-        }
-
-    }
-
     app.post('/ajax', isLoggedIn, function (req, res) {
-
         var node = req.body.node;
         User.findOne({'username': req.user.username}, function (err, user) {
-            changeSons(node, node.type, user, res);
+            updateTree(user,node);
         });
 
     });
 
-    app.get('/unsync/Flickr', isLoggedIn, function (req, res) {
+    app.get('/get/root', isLoggedIn, function(req,res){
+        console.log("AJAX");
+        var tree=req.user.tree;
+        var root;
+        for(i=0;i<tree.length;i++){
+            if(tree[i].myID=="root") root=tree[i];
+        }
+        console.log(root);
+        res.send(root);
+    });
+
+    app.get('/get/parents', isLoggedIn, function(req,res){
+        var myID=req.query.myID;
+        var parents = {
+            mother: String,
+            father: String
+        }
+        var tree=req.user.tree;
+        for(i=0;i<tree.length;i++){
+            if(tree[i].myID==myID){
+                parents.mother=tree[i].mother;
+                parents.father=tree[i].father;
+                res.send(parents);
+            }
+        }
+        res.send(parents);
+    });
+
+    app.get('/get/children', isLoggedIn, function(req,res){
+        var tree=req.user.tree;
+        var myID=req.query.myID;
+        var children= {
+            boys: [String],
+            girl: [String]
+        }
+        for(i=0;i<tree.length;i++){
+            if(tree[i].mother==myID || tree[i].father==myID){
+                if(tree[i].genre=="male") children.boys.push(tree[i].myID);
+                else children.girl.push(tree[i].myID);
+            }
+        }
+        res.send(children);
+    });
+
+
+
+    function updateTree(user, node, res) {
+        var found=false;
+        for (i = 0; i < user.tree.length; i++) {
+            if(found==true) return;
+            if (user.tree[i].myID = node.fromID) {
+                var newNode = {
+                    myID: node.myID,
+                    name: node.name,
+                    mother: "",
+                    father: "",
+                    genre: ""
+                }
+                if (node.type == "mother") {
+                    user.tree[i].mother = node.myID;
+                    newNode.genre="female";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+                else if (node.type == "father") {
+                    user.tree[i].father = node.myID;
+                    newNode.genre="male";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+                else if (node.type == "girl"){
+                    newNode.mother=node.fromID;
+                    newNode.genre="female";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+                else if(node.type=="boy"){
+                    newNode.father=node.fromID;
+                    newNode.genre="male";
+                    user.tree.push(newNode);
+                    found=true;
+                }
+
+            }
+            if(found==true){
+                user.save(function(err){
+                    if(err) console.dir(err);
+
+                })
+            }
+        }
+
+    }
+    app.get('/unsync/Flickr', isLoggedIn, function(req,res){
         console.log("unsync");
         User.findOne({username: req.user.username}, function (err, user) {
             if (err || !user)
@@ -322,7 +416,7 @@ module.exports = function (app, passport) {
     });
 
     app.get('/sync/Flickr', isLoggedIn, function (req, res) {
-        var tempUsername = req.user;
+        var tempUsername=req.user;
         var oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -377,11 +471,13 @@ module.exports = function (app, passport) {
             user.flickr.nsid = credentials.nsid;
             user.save(function (err) {
                 if (err) console.dir(err);
-                else api.getFlickrPhotos(credentials.username, next);
+                else api.getFlickrPhotos(credentials.username,next);
             });
         });
 
     }
+
+
 
 
     //----------------------------------------------------------
@@ -425,19 +521,7 @@ module.exports = function (app, passport) {
                         });
                     });
 
-                    /*var instagram_token=JSON.parse(body);
-                     req.db.collection('users').update(
-                     {'_id':req.user['_id']},
-                     {"$set":{"instagram":instagram_token}}
-                     ,function(err,result){
-                     if(err){console.log(err);}
-                     getInstagramPictures(req, res, function(err,result){
-                     if(err){
-                     console.log(err)
-                     }else{
-                     res.redirect('/profile');}
-                     });
-                     });*/
+
 
                 });
         }
@@ -462,51 +546,73 @@ module.exports = function (app, passport) {
                         var my_medias = [];
                         async.each(medias, function (media, callback) {
                             var url = media.images.standard_resolution.url;
-                            var tags = {}
+                            var tags = {};
+                            tags.description = [];
+                            tags.comments = [];
+                            tags.likes =[];
+                            tags.tagged = [];
                             async.parallel([
 
                                 function (_callback) {
                                     async.each(media.comments.data, function (comment, _cb) {
-                                        tags[comment.from.username.toLowerCase()] = true;
-                                        var words = comment.from.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        var comm = [];
+                                        comm.author = [];
+                                        comm.author.push.apply(comm.author, api.splitTextInTags(comment.from.username));
+                                        comm.author.push.apply(comm.author, api.splitTextInTags(comment.from.full_name));
+
+                                        comm.content = [];
+                                        comm.content.push.apply(comm.content, api.splitTextInTags(comment.text));
+
+                                        tags.comments.push(comm);
+
+                                        //tags[comment.from.username.toLowerCase()] = true;
+                                        //var words = comment.from.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
-                                function (_callback) {
-                                    async.each(media.comments.data, function (comment, _cb) {
-                                        var words = comment.text.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
-                                        _cb();
-                                    }, _callback);
-                                },
+                                //function (_callback) {
+                                //    async.each(media.comments.data, function (comment, _cb) {
+                                //        var words = comment.text.split(" ");
+                                //        words.forEach(function (element, index, array) {
+                                //            tags[element.toLowerCase()] = true;
+                                //        });
+                                //        _cb();
+                                //    }, _callback);
+                                //},
                                 function (_callback) {
                                     async.each(media.likes.data, function (like, _cb) {
-                                        tags[like.username] = true;
-                                        var words = like.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        tags.likes.push.apply(tags.likes, api.splitTextInTags(like.username));
+                                        tags.likes.push.apply(tags.likes, api.splitTextInTags(like.full_name));
+
+                                        //tags[like.username] = true;
+                                        //var words = like.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
                                 function (_callback) {
                                     async.each(media.users_in_photo, function (user, _cb) {
-                                        tags[user.user.username.toLowerCase()] = true;
-                                        var words = user.user.full_name.split(" ");
-                                        words.forEach(function (element, index, array) {
-                                            tags[element.toLowerCase()] = true;
-                                        });
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(user.user.username));
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(user.user.full_name));
+
+                                        //tags[user.user.username.toLowerCase()] = true;
+                                        //var words = user.user.full_name.split(" ");
+                                        //words.forEach(function (element, index, array) {
+                                        //    tags[element.toLowerCase()] = true;
+                                        //});
                                         _cb();
                                     }, _callback);
                                 },
                                 function (_callback) {
                                     async.each(media.tags, function (tag, _cb) {
-                                        tags[tag.toLowerCase()] = true;
+                                        tags.tagged.push.apply(tags.tagged, api.splitTextInTags(tag));
+
+                                        //tags[tag.toLowerCase()] = true;
                                         //tags[tag.toLowerCase()]=true;
                                         _cb();
                                     }, _callback);
@@ -514,7 +620,7 @@ module.exports = function (app, passport) {
                             ], function () {
                                 my_medias.push({
                                     'url': url,
-                                    'tags': Object.keys(tags),
+                                    'tags': tags, //Object.keys(tags),
                                     'source': 'Instagram'
                                 });
                                 callback();
@@ -611,19 +717,7 @@ module.exports = function (app, passport) {
         res.redirect('/');
     });
 
-    //app.get('/photos',isLoggedIn, function(req, res){
-    //    console.log("alohaa");
-    //    req.db.collection(req.user.local.username).find({},{'_id':false,'tags':false},function(err, cursor){
-    //        if (err){
-    //            res.send("Error");
-    //        }
-    //        else {
-    //            cursor.toArray(function(err,result){
-    //                res.send(result);
-    //            })
-    //        }
-    //    })
-    //})
+
     app.get('/google', isLoggedIn, function (req, res) {
         var message = "Sync Google+";
         var route = "/auth/google";

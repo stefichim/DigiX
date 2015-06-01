@@ -1,34 +1,5 @@
-.control {
-    float: left;
-    top:0;
-    left:0;
-    width: 300px;
-    height: 100%;
-    position: fixed;
-    border: 2px solid #000;
-    /*background: lightblue;*/
-}
-
-
-.root {
-    width:100px;
-    text-align: center;
-    border: 2px solid #000;
-    cursor: pointer;
-    left: 50%;
-    top: 50%;
-    position: fixed;
-}
-
-.node{
-    width:100px;
-    text-align: center;
-    border: 2px solid #000;
-    cursor: pointer;
+#container{
     position: absolute;
-    top:200px;
-    left: 200px;
-}
-.active{
-    border: 2px solid red;
+    width: 90%;
+    height: 100%;
 }
