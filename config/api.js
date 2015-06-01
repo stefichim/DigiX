@@ -127,8 +127,6 @@ function syncFacebookPhotos(user, callback) {
     });
 };
 
-
-
 function getFlickrPhotos(username, res){
 
     User.findOne({username: username}, function (err, user) {

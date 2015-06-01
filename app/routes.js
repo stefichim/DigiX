@@ -56,6 +56,24 @@ module.exports = function (app, passport) {
                         });
                     })
                 });
+
+                //if (user.instagram.access_token){
+                //    for (var i = user.photos.length - 1; i >= 0; i--) {
+                //        if (user.photos[i].source == 'Instagram') {
+                //            user.photos.splice(i, 1);
+                //        }
+                //    }
+                //    getInstagramPictures(req, res, function (err, result) {
+                //        if (err) {
+                //            console.log(err)
+                //        }
+                //    });
+                //    user.save(function (err) {
+                //        if (err) {
+                //            console.dir(err);
+                //        }
+                //    });
+                //}
             }
         });
     });
@@ -190,6 +208,18 @@ module.exports = function (app, passport) {
                 user.searched_photos.sort(function (a, b) {
                     return parseFloat(b.score) - parseFloat(a.score)
                 });
+
+                var maxScore = 0;
+                if (user.searched_photos.length){
+                    maxScore = user.searched_photos[0].score;
+                }
+
+                for (var i = 0; i < user.searched_photos.length; i++){
+                    if (user.searched_photos[i].score < maxScore / 2){
+                        user.searched_photos.splice(i, 1);
+                        i--;
+                    }
+                }
 
                 user.save(function (err) {
                     if (err) {
