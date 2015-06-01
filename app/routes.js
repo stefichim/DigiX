@@ -416,7 +416,6 @@ module.exports = function (app, passport) {
             if (err || !user)
                 return done(err);
             api.unsyncFlickr(user, function (user) {
-                console.log("bere");
                 user.save(function (err) {
                     if (err)
                         throw  err;
@@ -451,18 +450,16 @@ module.exports = function (app, passport) {
                     }
                     , url = 'https://www.flickr.com/services/oauth/access_token'
                     ;
-
                 request.post({url: url, oauth: oauth}, function (e, r, body) {
-
                     var perm_data = qs.parse(body);
-
                     var credentials = {
                         username: tempUsername.username,
                         oauth_token: perm_data.oauth_token,
                         oauth_token_secret: perm_data.oauth_token_secret,
                         nsid: perm_data.user_nsid
                     };
-                    updateFlickrCredentials(credentials, res);
+                    if(credentials.nsid!=undefined) updateFlickrCredentials(credentials, res);
+                    else res.redirect('/profile');
 
                 });
 

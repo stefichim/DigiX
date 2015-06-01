@@ -193,7 +193,7 @@ function nextPictureFlickr(data, next) {
     var total = data.body.photos.total;
     if (data.count == total) {
         data.user.save(function (err) {
-            if (err) return;
+            if (err) console.dir(err);
         })
         return next.redirect('/flickr');
     }
@@ -242,7 +242,6 @@ function nextPictureFlickr(data, next) {
 
             request.get({url: commentsUrl, oauth: oauth}, function (e, r, body) {
                 var comments = JSON.parse(body);
-
                 var authorList = "", commentList = "";
                 var commentsArray = {
                     'author': [],
@@ -250,7 +249,6 @@ function nextPictureFlickr(data, next) {
                 };
 
                 if (comments.comments != undefined) {
-                    console.log(comments.comments.comment.length);
                     for (i = 0; i < comments.comments.comment.length; i++) {
                         authorList = splitTextInTags(comments.comments.comment[i].realname);
                         commentList = splitTextInTags(comments.comments.comment[i]._content);
@@ -268,17 +266,18 @@ function nextPictureFlickr(data, next) {
                         for (i = 0; i < people.total; i++) {
                             var splitName = splitTextInTags(people.person[i].realname);
                             realTags.push.apply(realTags, splitName);
-                            console.log(realTags);
                         }
                     }
-
+                    console.log("commentsARRAY");
+                    console.log(commentsArray);
                     data.user.photos.push({
                         'url': photoUrl, 'source': 'flickr', 'tags': {
                             'description': splitDescription,
                             'tagged': realTags,
-                            'comments': commentsArray
+                            'comments':  [commentsArray]
                         }
                     });
+                    console.log(data.user.photos[data.user.photos.length-1].tags.comments);
                     data.count++;
                     nextPictureFlickr(data, next);
                 });
