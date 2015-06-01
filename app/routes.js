@@ -188,7 +188,7 @@ module.exports = function (app, passport) {
                                 }
                             } else {
                                 if (photoTags[k].indexOf(words[j]) > -1) {
-                                    if (photoTags[k].length <= 1.75 * words[j].length) {
+                                    if (photoTags[k].length <= 1.4 * words[j].length) {
                                         tagsScore++;
                                     }
                                 }
@@ -875,7 +875,7 @@ module.exports = function (app, passport) {
                                         }
                                     } else {
                                         if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
-                                            if (photos[i].tags.description[k].length <= 1.75 * description_tags[j].length) {
+                                            if (photos[i].tags.description[k].length <= 1.4 * description_tags[j].length) {
                                                 photos[i].score++;
                                             }
                                         }
@@ -899,7 +899,7 @@ module.exports = function (app, passport) {
                                                 }
                                             } else {
                                                 if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
-                                                    if (photos[i].tags.comments[l].author[k].length <= 1.75 * commented_by_tags[j].length) {
+                                                    if (photos[i].tags.comments[l].author[k].length <= 1.4 * commented_by_tags[j].length) {
                                                         photos[i].score++;
                                                     }
                                                 }
@@ -920,7 +920,7 @@ module.exports = function (app, passport) {
                                                 }
                                             } else {
                                                 if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
-                                                    if (photos[i].tags.comments[l].content[k].length <= 1.75 * commented_content_tags[j].length) {
+                                                    if (photos[i].tags.comments[l].content[k].length <= 1.4 * commented_content_tags[j].length) {
                                                         photos[i].score++;
                                                     }
                                                 }
@@ -944,7 +944,7 @@ module.exports = function (app, passport) {
                                         }
                                     } else {
                                         if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
-                                            if (photos[i].tags.likes[k].length <= 1.75 * liked_by_tags[j].length) {
+                                            if (photos[i].tags.likes[k].length <= 1.4 * liked_by_tags[j].length) {
                                                 photos[i].score++;
                                             }
                                         }
@@ -965,7 +965,7 @@ module.exports = function (app, passport) {
                                         }
                                     } else {
                                         if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
-                                            if (photos[i].tags.tagged[k].length <= 1.75 * persons_tagged_tags[j].length) {
+                                            if (photos[i].tags.tagged[k].length <= 1.4 * persons_tagged_tags[j].length) {
                                                 photos[i].score++;
                                             }
                                         }
