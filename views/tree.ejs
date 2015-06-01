@@ -56,14 +56,16 @@
                 url: '/ajax',
                 type: 'post',
                 data: {
-                    my_id: mother_node_id,
-                    from_id: node.id,
-                    name: name,
-                    type: "mother"
+                    node: {
+                        my_id: mother_node_id,
+                        from_id: node.id,
+                        name: name,
+                        type: "mother"
+                    }
                 },
                 dataType: 'json',
                 success: function (data) {
-
+                    console.log("SENT DATA");
                 }
             });
         };
@@ -82,18 +84,21 @@
             s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: father_node_id});
             current_edge_id++;
 
+
             $.ajax({
                 url: '/ajax',
                 type: 'post',
                 data: {
-                    my_id: father_node_id,
-                    from_id: node.id,
-                    name: name,
-                    type: "father"
+                    node: {
+                        my_id: father_node_id,
+                        from_id: node.id,
+                        name: name,
+                        type: "father"
+                    }
                 },
                 dataType: 'json',
                 success: function (data) {
-
+                    console.log("SENT DATA");
                 }
             });
         };
@@ -154,20 +159,29 @@
 
             document.getElementById("default_value").selected = true;
 
-//        $.ajax({
-//            url: '/ajax',
-//            type: 'post', // performing a POST request
-//            data: {
-//                node: tempNode
-//            },
-//            dataType: 'json',
-//            success: function (data) {
-//                // etc...
-//            }
-//        });
+            if (document.getElementById("mother_value").disabled == true && document.getElementById("father_value").disabled == true){
+                document.getElementById("parrentSubmit").disabled = true;
+            }
         };
 
         s.graph.addNode({id: '0', label: '0', x: x_start, y: y_start, size: 3, color: '#f00'});
+
+        $.ajax({
+            url: '/ajax',
+            type: 'post',
+            data: {
+                node: {
+                    my_id: "0",
+                    from_id: "",
+                    name: "pavaloi e ratat",
+                    type: "root"
+                }
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log("SENT DATA");
+            }
+        });
 
         s.bind('clickNode', function(e) {
             console.log("clicked ");
@@ -187,17 +201,21 @@
             else if (b_has_mother) {
                 console.log("mother ok");
 
+                document.getElementById("parrentSubmit").disabled = false;
                 document.getElementById("mother_value").disabled = true;
                 document.getElementById("father_value").disabled = false;
             }
             else if (b_has_father) {
-
                 console.log("father ok");
+
+                document.getElementById("parrentSubmit").disabled = false;
                 document.getElementById("father_value").disabled = true;
                 document.getElementById("mother_value").disabled = false;
             }
             else {
                 console.log("none ok");
+
+                document.getElementById("parrentSubmit").disabled = false;
                 document.getElementById("father_value").disabled = false;
                 document.getElementById("mother_value").disabled = false;
             }
