@@ -54,15 +54,15 @@ module.exports = function (app, passport) {
 
                                 refreshInstagramPhotos(req, res, user, function (user) {
                                     api.getPicasaAlbums(user.google.user_id, user.google.access_token, user, function (user) {
-                                        res.redirect('profile');
+                                        api.getFlickrPhotos(req.user.username, function() {
+                                            res.redirect('profile');
+                                        });
                                     });
                                 })
                             });
                         });
                     })
                 });
-
-
             }
         });
     });
@@ -416,7 +416,6 @@ module.exports = function (app, passport) {
             if (err || !user)
                 return done(err);
             api.unsyncFlickr(user, function (user) {
-                console.log("bere");
                 user.save(function (err) {
                     if (err)
                         throw  err;
@@ -426,52 +425,12 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.get('/sync/Flickr', isLoggedIn, function (req, res) {
-        var tempUsername = req.user;
-        var oauth = {
-                callback: 'http://localhost:2080/flickr/code'
-                , consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret
-            }
-            , url = 'https://www.flickr.com/services/oauth/request_token';
+    app.get('/sync/Flickr', passport.authenticate('flickr'));
 
-        request.post({url: url, oauth: oauth}, function (e, r, body) {
-            var req_data = qs.parse(body);
-            var uri = 'https://www.flickr.com/services/oauth/authorize' + '?' +
-                qs.stringify({oauth_token: req_data.oauth_token});
-            res.redirect(uri);
-            app.get('/flickr/code', function (req, res) {
-                var oauth =
-                    {
-                        consumer_key: privateInfo.flickr.consumer_key
-                        , consumer_secret: privateInfo.flickr.consumer_secret
-                        , token: req.query.oauth_token
-                        , token_secret: req_data.oauth_token_secret
-                        , verifier: req.query.oauth_verifier
-                    }
-                    , url = 'https://www.flickr.com/services/oauth/access_token'
-                    ;
-
-                request.post({url: url, oauth: oauth}, function (e, r, body) {
-
-                    var perm_data = qs.parse(body);
-
-                    var credentials = {
-                        username: tempUsername.username,
-                        oauth_token: perm_data.oauth_token,
-                        oauth_token_secret: perm_data.oauth_token_secret,
-                        nsid: perm_data.user_nsid
-                    };
-                    updateFlickrCredentials(credentials, res);
-
-                });
-
-
-            });
-
-        });
-
-    });
+    app.get('/flickr/code', passport.authenticate('flickr', {
+        successRedirect: '/flickr',
+        failureRedirect: '/logout'
+    }));
 
     function updateFlickrCredentials(credentials, next) {
 
@@ -843,150 +802,103 @@ module.exports = function (app, passport) {
 
     app.get('/advanced_search', isLoggedIn, function (req, res) {
             User.findOne({'username': req.user.username}, function (err, user) {
-                    user.current_picture_search_index = 0;
-                    user.searched_photos.length = 0;
+                user.current_picture_search_index = 0;
+                user.searched_photos.length = 0;
 
-                    var description_tags = api.splitTextInTags(req.query.description);
-                    var commented_by_tags = api.splitTextInTags(req.query.commented_by);
-                    var commented_content_tags = api.splitTextInTags(req.query.commented_content);
-                    var liked_by_tags = api.splitTextInTags(req.query.liked_by);
-                    var persons_tagged_tags = api.splitTextInTags(req.query.persons_tagged);
+                var description_tags = api.splitTextInTags(req.query.description);
+                var commented_by_tags = api.splitTextInTags(req.query.commented_by);
+                var commented_content_tags = api.splitTextInTags(req.query.commented_content);
+                var liked_by_tags = api.splitTextInTags(req.query.liked_by);
+                var persons_tagged_tags = api.splitTextInTags(req.query.persons_tagged);
 
 
-                    if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
-                        user.current_picture_index = 0;
-                        user.save(function (err) {
-                            if (err) {
-                                console.dir(err);
+                if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
+                    user.current_picture_index = 0;
+                    user.save(function (err) {
+                        if (err) {
+                            console.dir(err);
+                        }
+                    });
+                    res.redirect('/profile');
+                } else {
+                    var photos = user.photos;
+
+                    for (var i = 0; i < photos.length; i++) {
+                        photos[i].score = 0;
+                        for (var j = 0; j < description_tags.length; j++) {
+                            for (var k = 0; k < photos[i].tags.description.length; k++) {
+                                if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
+                                    photos[i].score++;
+                                    break;
+                                }
                             }
-                        });
-                        res.redirect('/profile');
+                        }
+
+                        for (j = 0; j < commented_by_tags.length; j++) {
+                            for (var l = 0; l < photos[i].tags.comments.length; l++) {
+                                var exit = 0;
+                                for (k = 0; k < photos[i].tags.comments[l].author.length; k++) {
+                                    if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
+                                        photos[i].score++;
+                                        exit = 1;
+                                        break;
+                                    }
+                                }
+
+                                if (exit == 1) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        for (j = 0; j < commented_content_tags.length; j++) {
+                            for (var l = 0; l < photos[i].tags.comments.length; l++) {
+                                var exit = 0;
+                                for (k = 0; k < photos[i].tags.comments[l].content.length; k++) {
+                                    if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
+                                        photos[i].score++;
+                                        exit = 1;
+                                        break;
+                                    }
+                                }
+                                if (exit == 1) {
+                                    break;
+                                }
+                            }
+                        }
+
+
+                        for (j = 0; j < liked_by_tags.length; j++) {
+                            for (k = 0; k < photos[i].tags.likes.length; k++) {
+                                if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
+                                    photos[i].score++;
+                                    break;
+                                }
+                            }
+                        }
+
+                        for (j = 0; j < persons_tagged_tags.length; j++) {
+                            for (k = 0; k < photos[i].tags.tagged.length; k++) {
+                                if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
+                                    photos[i].score++;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    var searched_photos = [];
+
+                    for (i = 0; i < photos.length; i++) {
+                        if (photos[i].score > 0) {
+                            searched_photos.push(photos[i]);
+                        }
+                    }
+
+                    if (searched_photos.length == 0) {
+                        searched_photos = undefined;
                     } else {
-                        var photos = user.photos;
-
-                        for (var i = 0; i < photos.length; i++) {
-                            photos[i].score = 0;
-                            for (var j = 0; j < description_tags.length; j++) {
-                                for (var k = 0; k < photos[i].tags.description.length; k++) {
-
-                                    if (photos[i].tags.description[k].length == 2){
-                                        if (photos[i].tags.description[k].indexOf(description_tags[j]) == 0){
-                                            photos[i].score++;
-                                        }
-                                    } else {
-                                        if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
-                                            if (photos[i].tags.description[k].length <= 1.4 * description_tags[j].length) {
-                                                photos[i].score++;
-                                            }
-                                        }
-                                    }
-
-                                    //if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
-                                    //    photos[i].score++;
-                                    //}
-                                }
-                            }
-
-                            if (commented_by_tags.length > 0 || commented_content_tags.length > 0) {
-
-                                for (var l = 0; l < photos[i].tags.comments.length; l++) {
-                                    for (j = 0; j < commented_by_tags.length; j++) {
-                                        for (k = 0; k < photos[i].tags.comments[l].author.length; k++) {
-
-                                            if (photos[i].tags.comments[l].author[k].length == 2){
-                                                if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) == 0){
-                                                    photos[i].score++;
-                                                }
-                                            } else {
-                                                if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
-                                                    if (photos[i].tags.comments[l].author[k].length <= 1.4 * commented_by_tags[j].length) {
-                                                        photos[i].score++;
-                                                    }
-                                                }
-                                            }
-
-                                            //if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
-                                            //    photos[i].score++;
-                                            //}
-                                        }
-                                    }
-
-                                    for (j = 0; j < commented_content_tags.length; j++) {
-                                        for (k = 0; k < photos[i].tags.comments[l].content.length; k++) {
-
-                                            if (photos[i].tags.comments[l].content[k].length == 2){
-                                                if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) == 0){
-                                                    photos[i].score++;
-                                                }
-                                            } else {
-                                                if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
-                                                    if (photos[i].tags.comments[l].content[k].length <= 1.4 * commented_content_tags[j].length) {
-                                                        photos[i].score++;
-                                                    }
-                                                }
-                                            }
-
-                                            //if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
-                                            //    photos[i].score++;
-                                            //}
-                                        }
-                                    }
-                                }
-                            }
-
-
-                            for (j = 0; j < liked_by_tags.length; j++) {
-                                for (k = 0; k < photos[i].tags.likes.length; k++) {
-
-                                    if (photos[i].tags.likes[k].length == 2){
-                                        if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) == 0){
-                                            photos[i].score++;
-                                        }
-                                    } else {
-                                        if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
-                                            if (photos[i].tags.likes[k].length <= 1.4 * liked_by_tags[j].length) {
-                                                photos[i].score++;
-                                            }
-                                        }
-                                    }
-
-                                    //if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
-                                    //    photos[i].score++;
-                                    //}
-                                }
-                            }
-
-                            for (j = 0; j < persons_tagged_tags.length; j++) {
-                                for (k = 0; k < photos[i].tags.tagged.length; k++) {
-
-                                    if (photos[i].tags.tagged[k].length == 2){
-                                        if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) == 0){
-                                            photos[i].score++;
-                                        }
-                                    } else {
-                                        if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
-                                            if (photos[i].tags.tagged[k].length <= 1.4 * persons_tagged_tags[j].length) {
-                                                photos[i].score++;
-                                            }
-                                        }
-                                    }
-
-                                    //if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
-                                    //    photos[i].score++;
-                                    //}
-                                }
-                            }
-                        }
-
-                        var searched_photos = [];
-
-                        for (i = 0; i < photos.length; i++) {
-                            if (photos[i].score > 0) {
-                                searched_photos.push(photos[i]);
-                            }
-                        }
-
-                        photos.sort(function (a, b) {
+                        searched_photos.sort(function (a, b) {
                             if (a.score < b.score)
                                 return 1;
                             else if (a.score > b.score)
@@ -995,22 +907,97 @@ module.exports = function (app, passport) {
                                 return 0;
                         });
 
-                        if (searched_photos.length == 0)
-                            searched_photos = undefined;
+                        //for (i = 0; i < searched_photos.length; i++)
+                        //    console.log(searched_photos[i].score);
 
-                        user.searched_photos = searched_photos;
+                        var equalItemsStartPos = 0;
+                        var equalScore = searched_photos[0].score;
 
-                        user.save(function (err) {
-                            if (err) {
-                                console.dir(err);
+                        for (i = 1; i < searched_photos.length; i++) {
+                            if (searched_photos[i].score != equalScore || i == searched_photos.length - 1) {
+                                if (i - equalItemsStartPos > 1) {
+                                    for (j = equalItemsStartPos; j < i; j++) {
+                                        for (k = 0; k < description_tags.length; k++) {
+                                            for (l = 0; l < searched_photos[j].tags.description.length; l++) {
+                                                if (searched_photos[j].tags.description[l].indexOf(description_tags[k]) > -1) {
+                                                    searched_photos[j].score++;
+                                                }
+                                            }
+                                        }
+
+
+                                        for (k = 0; k < commented_by_tags.length; k++) {
+                                            for (var o = 0; o < searched_photos[j].tags.comments.length; o++) {
+                                                for (l = 0; l < searched_photos[j].tags.comments[o].author.length; l++) {
+                                                    if (searched_photos[j].tags.comments[o].author[l].indexOf(commented_by_tags[k]) > -1) {
+                                                        searched_photos[j].score++;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        for (k = 0; k < commented_content_tags.length; k++) {
+                                            for (var o = 0; o < searched_photos[j].tags.comments.length; o++) {
+                                                for (l = 0; l < searched_photos[j].tags.comments[o].content.length; l++) {
+                                                    if (searched_photos[j].tags.comments[o].content[l].indexOf(commented_content_tags[k]) > -1) {
+                                                        searched_photos[j].score++;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+
+                                        for (k = 0; k < liked_by_tags.length; k++) {
+                                            for (l = 0; l < searched_photos[j].tags.likes.length; l++) {
+                                                if (searched_photos[j].tags.likes[l].indexOf(liked_by_tags[k]) > -1) {
+                                                    searched_photos[j].score++;
+                                                }
+                                            }
+                                        }
+
+                                        for (k = 0; k < persons_tagged_tags.length; k++) {
+                                            for (l = 0; l < searched_photos[j].tags.tagged.length; l++) {
+                                                if (searched_photos[j].tags.tagged[l].indexOf(persons_tagged_tags[k]) > -1) {
+                                                    searched_photos[j].score++;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    for (j = equalItemsStartPos; j < i - 1; j++) {
+                                        for (k = j + 1; k < i; k++) {
+                                            if (searched_photos[j].score < searched_photos[k].score) {
+                                                var aux = searched_photos[j];
+                                                searched_photos[j] = searched_photos[k];
+                                                searched_photos[k] = aux;
+                                            }
+                                        }
+                                    }
+
+                                    equalItemsStartPos = i;
+                                    equalScore = searched_photos[i].score;
+                                } else {
+                                    equalItemsStartPos++;
+                                    equalScore = searched_photos[i].score;
+                                }
                             }
-
-                            res.redirect('/search_photos');
-                        });
+                        }
                     }
+
+                    //for (i = 0; i < searched_photos.length; i++)
+                    //    console.log(searched_photos[i].score);
+
+                    user.searched_photos = searched_photos;
+
+                    user.save(function (err) {
+                        if (err) {
+                            console.dir(err);
+                        }
+
+                        res.redirect('/search_photos');
+                    });
                 }
-            )
-            ;
+            });
         }
     )
     ;
