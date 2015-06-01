@@ -76,8 +76,8 @@ module.exports = function (app, passport) {
                 var nextButtonVisible = 'visible';
 
                 var i;
-
-                console.log(typeof(user.current_picture_index));
+                console.log(user.current_picture_index);
+                console.log(parseInt(user.current_picture_index));
                 for (i = parseInt(user.current_picture_index); i < user.photos.length && i < (parseInt(user.current_picture_index) + privateInfo.profile.numberOfPicturesPage); i++) {
                     my_pictures.push(user.photos[i].url);
                 }
@@ -234,6 +234,7 @@ module.exports = function (app, passport) {
             }
 
 
+
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
             }
@@ -339,6 +340,7 @@ module.exports = function (app, passport) {
         }
         res.send(children);
     });
+
 
 
     function updateTree(user, node, res) {
@@ -468,6 +470,8 @@ module.exports = function (app, passport) {
     }
 
 
+
+
     //----------------------------------------------------------
     //----------------------------------------------------------
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
@@ -508,6 +512,7 @@ module.exports = function (app, passport) {
                             });
                         });
                     });
+
 
 
                 });
@@ -844,7 +849,6 @@ module.exports = function (app, passport) {
                             photos[i].score = 0;
                             for (var j = 0; j < description_tags.length; j++) {
                                 for (var k = 0; k < photos[i].tags.description.length; k++) {
-                                    console.log(photos[i].score);
                                     if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
                                         photos[i].score++;
                                     }
@@ -911,8 +915,6 @@ module.exports = function (app, passport) {
                             searched_photos = undefined;
 
                         user.searched_photos = searched_photos;
-
-                        console.log(user.searched_photos);
 
                         user.save(function (err) {
                             if (err) {

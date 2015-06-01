@@ -2,37 +2,22 @@
 <html>
 <head>
     <link href="stylesheets/arbore.css" rel="stylesheet" type="text/css">
-    <script src="javascripts/arbore.js" type="text/javascript"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 </head>
 <body>
-<div class="control">
-    <div class="nume">
-        Nume:
-        <input type="text" value="">
-        <br>
-        <input type="button" value="Submit">
-    </div>
-    <br><hr>
+<div id="control" style="visibility:hidden">
     <div class="parent">
         <form>
             Nume: <input type="text" value="" id="parentText">
             <select id="parentSelect">
-                <option value="mother">Mother</option>
-                <option value="father">Father</option>
+                <option id="default_value" value=""></option>
+                <option id="father_value" value="father">Father</option>
+                <option id="mother_value" value="mother">Mother</option>
             </select>
             <br>
-            <input type="button" value="Submit" onclick="addParent(this.form)">
+            <input id="parrentSubmit" type="button" value="Submit" >
         </form>
     </div>
-    <br><hr>
-    <div class="child">
-        Nume: <input type="text" value="">
-        <br>
-        <input type="button" value="Submit" >
-    </div>
-    <br> <hr>
-    <input type="button" value="Submit ALL" onclick="sendData()">
 </div>
 
 <div id="container">
@@ -40,96 +25,219 @@
 </div>
 <script src="javascripts/sigma.min.js"></script>
 <script>
-    var s = new sigma('container');
+    $(document).ready(function(){
+        var s = new sigma('container');
 
-    var clicked_node = undefined;
-    var current_node_id = 1;
-    var current_edge_id = 0;
-    var x_space = 100;
-    var y_space = 100;
+        var clicked_node = undefined;
+        var current_node_id = 1;
+        var current_edge_id = 0;
+        var x_space = 100;
+        var y_space = 100;
 
-    var x_start = 100;
-    var y_start = 100;
+        var x_start = 100;
+        var y_start = 100;
 
-    var x_constant = 10;
+        var x_constant = 10;
 
-    function addMother(node){
-        var mother_node_id = current_node_id.toString();
-        current_node_id++;
+        function addMother(node, name){
+            var mother_node_id = current_node_id.toString();
+            current_node_id++;
 
-        x_space = x_start - x_constant * ((y_start - node.y) / y_space);
+            x_space = x_start - x_constant * ((y_start - node.y) / y_space);
 
-        s.graph.addNode({id: mother_node_id, label: mother_node_id, x: node.x - x_space, y: node.y - y_space, size: 3, color: '#f00'});
-        s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: mother_node_id});
-        current_edge_id++;
-    };
+            //console.log("CURRENT: x:" + node.x.toString() + " y:" + node.y.toString());
+            //console.log("ADDED  : x:" + (node.x - x_space).toString() + " y:" + (node.y - y_space).toString());
 
-    function addFather(node){
-        var father_node_id = current_node_id.toString();
-        current_node_id++;
+            s.graph.addNode({id: mother_node_id, label: name, x: node.x - x_space, y: node.y - y_space, size: 3, color: '#f00'});
+            s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: mother_node_id});
+            current_edge_id++;
 
-        x_space = x_start - x_constant * ((y_start - node.y) / y_space);
+            $.ajax({
+                url: '/ajax',
+                type: 'post',
+                data: {
+                    node: {
+                        my_id: mother_node_id,
+                        from_id: node.id,
+                        name: name,
+                        type: "mother"
+                    }
+                },
+                dataType: 'json',
+                success: function (data) {
+                    console.log("SENT DATA");
+                }
+            });
+        };
 
-        s.graph.addNode({id: father_node_id, label: father_node_id, x: node.x + x_space, y: node.y - y_space, size: 3, color: '#f00'});
+        function addFather(node, name){
+            var father_node_id = current_node_id.toString();
+            current_node_id++;
 
-        s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: father_node_id});
-        current_edge_id++;
-    };
+            x_space = x_start - x_constant * ((y_start - node.y) / y_space);
 
-    function addParrent() {
-        if (clicked_node == undefined) return;
-        var select = document.getElementById("parentSelect");
-        var name = document.getElementById("parentText").value;
-        var selectedOption = select.options[select.selectedIndex].value;
+            //console.log("CURRENT: x:" + node.x.toString() + " y:" + node.y.toString());
+            //console.log("Added x:" + (node.x + x_space).toString() + " y:" + (node.y - y_space).toString());
 
-        if (selectedOption == "mother") addMother(clicked_node);
-        else if (selectedOption == "father") addFather(clicked_node);
-        else alert("Oups");
+            s.graph.addNode({id: father_node_id, label: name, x: node.x + x_space, y: node.y - y_space, size: 3, color: '#f00'});
 
-//        $.ajax({
-//            url: '/ajax',
-//            type: 'post', // performing a POST request
-//            data: {
-//                node: tempNode
-//            },
-//            dataType: 'json',
-//            success: function (data) {
-//                // etc...
-//            }
-//        });
-    }
+            s.graph.addEdge({id: current_edge_id.toString(), source: node.id, target: father_node_id});
+            current_edge_id++;
 
-    s.graph.addNode({id: '0', label: '0', x: x_start, y: y_start, size: 3, color: '#f00'});
 
-//    for (var i = 0; i < 10; i++){
-//        addMother(s.graph.nodes(i.toString()));
-//        //addFather(s.graph.nodes(i.toString()));
-//    }
-//
-//    addFather(s.graph.nodes('9'));
-//    addFather(s.graph.nodes('5'));
+            $.ajax({
+                url: '/ajax',
+                type: 'post',
+                data: {
+                    node: {
+                        my_id: father_node_id,
+                        from_id: node.id,
+                        name: name,
+                        type: "father"
+                    }
+                },
+                dataType: 'json',
+                success: function (data) {
+                    console.log("SENT DATA");
+                }
+            });
+        };
 
-    s.bind('clickNode', function(e) {
-        clicked_node = e.data.node;
-        document.getElementById("test").style.visibility = "visible";
+        function hasMother(node) {
+            var edges = s.graph.edges();
+            for (var i = 0; i < edges.length; i++) {
+                //alert("mother" + i.toString());
+
+                var source_node = s.graph.nodes(edges[i].source);
+                var target_node = s.graph.nodes(edges[i].target);
+
+                if (node.x == source_node.x && node.y == source_node.y && source_node.x > target_node.x && source_node.y > target_node.y) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        function hasFather(node) {
+            var edges = s.graph.edges();
+            for (var i = 0; i < edges.length; i++) {
+                //alert("father" + i.toString());
+
+                var source_node = s.graph.nodes(edges[i].source);
+                var target_node = s.graph.nodes(edges[i].target);
+
+                if (node.x == source_node.x && node.y == source_node.y && source_node.x < target_node.x && source_node.y > target_node.y) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        function addParrent() {
+            if (clicked_node == undefined) return;
+            document.getElementById("control").style.visibility = "visible";
+
+            var select = document.getElementById("parentSelect");
+            var name = document.getElementById("parentText").value;
+            var selectedOption = select.options[select.selectedIndex].value;
+
+            if (selectedOption == "mother") {
+                console.log("add mother");
+
+                addMother(clicked_node, name);
+                document.getElementById("default_value").selected = true;
+                document.getElementById("mother_value").disabled = true;
+            }
+
+            else if (selectedOption == "father") {
+                console.log("add father");
+
+                addFather(clicked_node, name);
+                document.getElementById("default_value").selected = true;
+                document.getElementById("father_value").disabled = true;
+            }
+
+            document.getElementById("default_value").selected = true;
+
+            if (document.getElementById("mother_value").disabled == true && document.getElementById("father_value").disabled == true){
+                document.getElementById("parrentSubmit").disabled = true;
+            }
+        };
+
+        s.graph.addNode({id: '0', label: '0', x: x_start, y: y_start, size: 3, color: '#f00'});
+
+        $.ajax({
+            url: '/ajax',
+            type: 'post',
+            data: {
+                node: {
+                    my_id: "0",
+                    from_id: "",
+                    name: "pavaloi e ratat",
+                    type: "root"
+                }
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log("SENT DATA");
+            }
+        });
+
+        s.bind('clickNode', function(e) {
+            console.log("clicked ");
+
+            clicked_node = e.data.node;
+            b_has_mother = hasMother(clicked_node);
+            b_has_father = hasFather(clicked_node);
+
+            console.log("BOOLS: mother:" + b_has_mother.toString() + " father:" + b_has_father.toString());
+
+            if (b_has_mother && b_has_father) {
+                console.log("both ok");
+                document.getElementById("parrentSubmit").disabled = true;
+                document.getElementById("mother_value").disabled = true;
+                document.getElementById("father_value").disabled = true;
+            }
+            else if (b_has_mother) {
+                console.log("mother ok");
+
+                document.getElementById("parrentSubmit").disabled = false;
+                document.getElementById("mother_value").disabled = true;
+                document.getElementById("father_value").disabled = false;
+            }
+            else if (b_has_father) {
+                console.log("father ok");
+
+                document.getElementById("parrentSubmit").disabled = false;
+                document.getElementById("father_value").disabled = true;
+                document.getElementById("mother_value").disabled = false;
+            }
+            else {
+                console.log("none ok");
+
+                document.getElementById("parrentSubmit").disabled = false;
+                document.getElementById("father_value").disabled = false;
+                document.getElementById("mother_value").disabled = false;
+            }
+
+            document.getElementById("control").style.visibility = "visible";
+        });
+
+        s.settings({
+            minNodeSize : 6,
+            maxNodeSize : 30,
+            labelThreshold : 0,
+            labelSize : "proportional"
+        });
+
+        s.refresh();
+
+        $('#parrentSubmit').on('click',function(){
+            console.log("Parrent submit");
+            addParrent();
+            s.refresh();
+        });
     });
-
-//    s.bind('outNode', function(e) {
-//        document.getElementById("test").style.visibility = "hidden";
-//    });
-
-
-    /*.addEdge({id: 'e0', source: 'n0', target: 'n1'});
-    */
-
-    s.settings({
-        minNodeSize : 6,
-        maxNodeSize : 10,
-        labelThreshold : 0,
-        labelSize : "proportional"
-    });
-
-    s.refresh();
 </script>
 </body>
 </html>
