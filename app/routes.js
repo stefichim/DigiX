@@ -46,7 +46,7 @@ module.exports = function (app, passport) {
                             throw  err;
                         api.syncFacebookPhotos(user, function (user) {
                             user.save(function (err) {
-                                if (err){
+                                if (err) {
                                     res.redirect('logout');
                                     throw  err;
                                 }
@@ -191,7 +191,6 @@ module.exports = function (app, passport) {
             }
 
 
-
             if (parseInt(user.current_picture_search_index) < privateInfo.profile.numberOfPicturesPage) {
                 previousButtonVisible = 'invisible';
             }
@@ -306,7 +305,7 @@ module.exports = function (app, passport) {
 
     });
 
-    app.get('/unsync/Flickr', isLoggedIn, function(req,res){
+    app.get('/unsync/Flickr', isLoggedIn, function (req, res) {
         console.log("unsync");
         User.findOne({username: req.user.username}, function (err, user) {
             if (err || !user)
@@ -323,7 +322,7 @@ module.exports = function (app, passport) {
     });
 
     app.get('/sync/Flickr', isLoggedIn, function (req, res) {
-        var tempUsername=req.user;
+        var tempUsername = req.user;
         var oauth = {
                 callback: 'http://localhost:2080/flickr/code'
                 , consumer_key: privateInfo.flickr.consumer_key
@@ -378,13 +377,11 @@ module.exports = function (app, passport) {
             user.flickr.nsid = credentials.nsid;
             user.save(function (err) {
                 if (err) console.dir(err);
-                else api.getFlickrPhotos(credentials.username,next);
+                else api.getFlickrPhotos(credentials.username, next);
             });
         });
 
     }
-
-
 
 
     //----------------------------------------------------------
@@ -712,7 +709,114 @@ module.exports = function (app, passport) {
 
         res.redirect('/facebook');
     });
-};
+
+    app.get('/advanced_search', isLoggedIn, function (req, res) {
+            User.findOne({'username': req.user.username}, function (err, user) {
+                    user.current_picture_search_index = 0;
+                    user.searched_photos.length = 0;
+
+                    var description_tags = api.splitTextInTags(req.query.description);
+                    var commented_by_tags = api.splitTextInTags(req.query.commented_by);
+                    var commented_content_tags = api.splitTextInTags(req.query.commented_content);
+                    var liked_by_tags = api.splitTextInTags(req.query.liked_by);
+                    var persons_tagged_tags = api.splitTextInTags(req.query.persons_tagged);
+
+
+                    if (description_tags.length == 0 && commented_by_tags.length == 0 && commented_content_tags.length == 0 && liked_by_tags.length == 0 && persons_tagged_tags.length == 0) {
+                        user.current_picture_index = -1;
+                        user.save(function (err) {
+                            if (err) {
+                                console.dir(err);
+                            }
+                        });
+                        res.redirect('/profile');
+                    } else {
+                        var photos = user.photos;
+
+                        for (var i = 0; i < photos.length; i++) {
+                            photos[i].score = 0;
+                            for (var j = 0; j < description_tags.length; j++) {
+                                for (var k = 0; k < photos[i].tags.description.length; k++) {
+                                    if (photos[i].tags.description[k].indexOf(description_tags[j]) > -1) {
+                                        photos[i].score++;
+                                    }
+                                }
+                            }
+
+                            if (commented_by_tags.length > 0 || commented_content_tags.length > 0) {
+
+                                for (var l = 0; l < photos[i].tags.comments.length; l++) {
+                                    for (j = 0; j < commented_by_tags.length; j++) {
+                                        for (k = 0; k < photos[i].tags.comments[l].author.length; k++) {
+                                            if (photos[i].tags.comments[l].author[k].indexOf(commented_by_tags[j]) > -1) {
+                                                photos[i].score++;
+                                            }
+                                        }
+                                    }
+
+                                    for (j = 0; j < commented_content_tags.length; j++) {
+                                        for (k = 0; k < photos[i].tags.comments[l].content.length; k++) {
+                                            if (photos[i].tags.comments[l].content[k].indexOf(commented_content_tags[j]) > -1) {
+                                                photos[i].score++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            for (j = 0; j < liked_by_tags.length; j++) {
+                                for (k = 0; k < photos[i].tags.likes.length; k++) {
+                                    if (photos[i].tags.likes[k].indexOf(liked_by_tags[j]) > -1) {
+                                        photos[i].score++;
+                                    }
+                                }
+                            }
+
+                            for (j = 0; j < persons_tagged_tags.length; j++) {
+                                for (k = 0; k < photos[i].tags.tagged.length; k++) {
+                                    if (photos[i].tags.tagged[k].indexOf(persons_tagged_tags[j]) > -1) {
+                                        photos[i].score++;
+                                    }
+                                }
+                            }
+                        }
+
+                        var searched_photos = [];
+
+                        for (i = 0; i < photos.length; i++) {
+                            if (photos[i].score > 0) {
+                                searched_photos.push(photos[i]);
+                            }
+                        }
+
+                        photos.sort(function (a, b) {
+                            if (a.score < b.score)
+                                return 1;
+                            else if (a.score > b.score)
+                                return -1;
+                            else
+                                return 0;
+                        });
+
+                        user.searched_photos = searched_photos;
+
+                        user.save(function (err) {
+                            if (err) {
+                                console.dir(err);
+                            }
+
+                            res.redirect('/search_photos');
+                        });
+                    }
+                }
+            )
+            ;
+        }
+    )
+    ;
+}
+;
 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())

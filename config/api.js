@@ -4,9 +4,9 @@ var privateInfo = require('../app/models/private');
 var qs = require('querystring');
 /* Facebook */
 /* Facebook */
-function removeNull(tmp_arr){
-    for (var i = 0; i < tmp_arr.length; i++){
-        if (tmp_arr[i] == ""){
+function removeNull(tmp_arr) {
+    for (var i = 0; i < tmp_arr.length; i++) {
+        if (tmp_arr[i] == "") {
             tmp_arr.splice(i, 1);
         }
     }
@@ -33,20 +33,20 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
                     tags = [];
 
                     // Photo location
-                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined){
+                    if (photosJson['data'][j].place != undefined && photosJson['data'][j].place.name != undefined) {
                         var tmp_arr = photosJson['data'][j].place.name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                         removeNull(tmp_arr);
                         tags.push.apply(tags, tmp_arr);
                     }
                     // Photo description
-                    if (photosJson['data'][j].name){
+                    if (photosJson['data'][j].name) {
                         var tmp_arr = photosJson['data'][j].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                         removeNull(tmp_arr);
                         tags.push.apply(tags, tmp_arr);
                     }
                     // Photo tags
                     if (photosJson['data'].tags != undefined && photosJson['data'].tags.data != undefined) {
-                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++){
+                        for (var tag_index = 0; tag_index < photosJson['data'].tags.data.length; tag_index++) {
                             var tmp_arr = photosJson['data'].tags.data[k].name.toLowerCase().split(/[\s,"'\.\-\(\)]+/);
                             removeNull(tmp_arr);
                             tags.push.apply(tags, tmp_arr);
@@ -98,7 +98,7 @@ function getFacebookAlbum(profile_id, token, user, callback) {
 };
 
 function unsyncFacebookPhotos(user, isRefresh, callback) {
-    if (isRefresh != 1){
+    if (isRefresh != 1) {
         user.facebook.token = undefined;
         user.facebook.profile_id = undefined;
     }
@@ -119,8 +119,7 @@ function syncFacebookPhotos(user, callback) {
 };
 
 
-
-function getFlickrPhotos(username, res){
+function getFlickrPhotos(username, res) {
 
     User.findOne({username: username}, function (err, user) {
         if (err) {
@@ -192,20 +191,20 @@ function nextPictureFlickr(data, next) {
         for (j = 0; j < tags.photo.tags.tag.length; j++) {
             realTags.push(tags.photo.tags.tag[j].raw);
         }
-        data.user.photos.push({'url': photoUrl,'source':'flickr', 'tags': realTags});
+        data.user.photos.push({'url': photoUrl, 'source': 'flickr', 'tags': realTags});
         data.count++;
         nextPictureFlickr(data, next);
     });
 }
-function unsyncFlickr(user, callback ){
+function unsyncFlickr(user, callback) {
     for (var i = user.photos.length - 1; i >= 0; i--) {
         if (user.photos[i].source == 'flickr') {
             user.photos.splice(i, 1);
         }
     }
-    user.flickr.nsid=undefined;
-    user.flickr.token=undefined;
-    user.flickr.token_secret=undefined;
+    user.flickr.nsid = undefined;
+    user.flickr.token = undefined;
+    user.flickr.token_secret = undefined;
     callback(user);
 }
 
@@ -218,7 +217,7 @@ function getPicasaAlbums(profile_id, token, user, callback) {
 
             if (albumsJson.feed.entry != undefined) {
 
-                getPicasaPhotos(new Array(), 0, albumsJson.feed.entry, profile_id, token, function (photos) {
+                getPicasaPhotos([], 0, albumsJson.feed.entry, profile_id, token, function (photos) {
                     for (var i = user.photos.length - 1; i >= 0; i--) {
                         if (user.photos[i].source == 'google') {
                             user.photos.splice(i, 1);
@@ -266,14 +265,16 @@ function getPicasaPhotosInfo(j, profile_id, album_id, token, photosInAlbum, phot
             , album_id
             , photosInAlbum[j]['gphoto$id']['$t']
             , token, function (titleTags, descriptionTags, commentsTags) {
-                tags.push.apply(tags, titleTags);
-                tags.push.apply(tags, descriptionTags);
-                tags.push.apply(tags, commentsTags.authorTags);
-                tags.push.apply(tags, commentsTags.textTags);
+                descriptionTags.push.apply(descriptionTags, titleTags);
 
                 photos.push({
                     url: photosInAlbum[j].content.src,
-                    tags: tags,
+                    tags: {
+                        description: descriptionTags,
+                        comments: commentsTags,
+                        likes: [],
+                        tagged: []
+                    },
                     source: 'google'
                 });
 
@@ -292,12 +293,8 @@ function getPicasaPhotoTags(profile_id, album_id, photo_id, token, callback) {
             var photoInfoJson = JSON.parse(body);
 
             var titleTags = splitTextInTags(photoInfoJson.feed.title['$t']);
-            console.log(photoInfoJson.feed.title['$t']);
-            console.log('title ' + titleTags);
 
             var descriptionTags = splitTextInTags(photoInfoJson.feed.subtitle['$t']);
-            console.log(photoInfoJson.feed.subtitle['$t']);
-            console.log('description ' + descriptionTags)
             var commentsTags = [];
 
             for (var i = 0; photoInfoJson.feed.entry != undefined && i < photoInfoJson.feed.entry.length; i++) {
@@ -305,12 +302,10 @@ function getPicasaPhotoTags(profile_id, album_id, photo_id, token, callback) {
                 var commentTextTags = splitTextInTags(photoInfoJson.feed.entry[i].content['$t']);
 
                 commentsTags.push({
-                    authorTags: authorTags,
-                    textTags: commentTextTags
+                    author: authorTags,
+                    content: commentTextTags
                 });
             }
-
-            console.log(commentsTags);
 
             callback(titleTags, descriptionTags, commentsTags);
         }
@@ -330,7 +325,7 @@ function splitTextInTags(text) {
     }
 
     if (i - tagFirstPos > 0) {
-        tags.push(text.substring(tagFirstPos, i));
+        tags.push(text.substring(tagFirstPos, i).toLowerCase());
     }
 
     return tags;
@@ -351,13 +346,14 @@ function isCharNotPartOfTag(char) {
 }
 
 module.exports = {
-    getFacebookPhoto : getFacebookPhoto,
-    getFacebookAlbum : getFacebookAlbum,
-    unsyncFacebookPhotos : unsyncFacebookPhotos,
-    syncFacebookPhotos : syncFacebookPhotos,
+    getFacebookPhoto: getFacebookPhoto,
+    getFacebookAlbum: getFacebookAlbum,
+    unsyncFacebookPhotos: unsyncFacebookPhotos,
+    syncFacebookPhotos: syncFacebookPhotos,
 
     getFlickrPhotos: getFlickrPhotos,
     unsyncFlickr: unsyncFlickr,
 
-    getPicasaAlbums: getPicasaAlbums
+    getPicasaAlbums: getPicasaAlbums,
+    splitTextInTags: splitTextInTags
 };
