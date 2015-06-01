@@ -425,54 +425,12 @@ module.exports = function (app, passport) {
         });
     });
 
-    app.get('/sync/Flickr', isLoggedIn, function (req, res) {
-        var tempUsername = req.user;
-        var oauth = {
-                callback: 'http://localhost:2080/flickr/code'
-                , consumer_key: privateInfo.flickr.consumer_key
-                , consumer_secret: privateInfo.flickr.consumer_secret
-            }
-            , url = 'https://www.flickr.com/services/oauth/request_token';
+    app.get('/sync/Flickr', passport.authenticate('flickr'));
 
-        request.post({url: url, oauth: oauth}, function (e, r, body) {
-            var req_data = qs.parse(body);
-            var uri = 'https://www.flickr.com/services/oauth/authorize' + '?' +
-                qs.stringify({oauth_token: req_data.oauth_token});
-            res.redirect(uri);
-            app.get('/flickr/code', function (req, res) {
-                var oauth =
-                    {
-                        consumer_key: privateInfo.flickr.consumer_key
-                        , consumer_secret: privateInfo.flickr.consumer_secret
-                        , token: req.query.oauth_token
-                        , token_secret: req_data.oauth_token_secret
-                        , verifier: req.query.oauth_verifier
-                    }
-                    , url = 'https://www.flickr.com/services/oauth/access_token'
-                    ;
-                console.log("NORBI");
-                console.log(oauth);
-                request.post({url: url, oauth: oauth}, function (e, r, body) {
-                    var perm_data = qs.parse(body);
-                    var credentials = {
-                        username: tempUsername.username,
-                        oauth_token: perm_data.oauth_token,
-                        oauth_token_secret: perm_data.oauth_token_secret,
-                        nsid: perm_data.user_nsid
-                    };
-                    if(credentials.nsid!=undefined) updateFlickrCredentials(credentials, function(){
-                        res.redirect('/flickr');
-                    });
-                    else res.redirect('/profile');
-
-                });
-
-
-            });
-
-        });
-
-    });
+    app.get('/flickr/code', passport.authenticate('flickr', {
+        successRedirect: '/flickr',
+        failureRedirect: '/logout'
+    }));
 
     function updateFlickrCredentials(credentials, next) {
 
