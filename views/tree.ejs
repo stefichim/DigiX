@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="stylesheets/jquery.alerts.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="javascripts/jquery.alerts.js"></script>
+    <script src="include/jquery/jquery-1.11.2.min.js"></script>
+    <script src="include/bootstrap/js/bootstrap.min.js"></script>
+
     <script src="javascripts/tree.js"></script>
     <link href="stylesheets/tree.css" rel="stylesheet" type="text/css">
 </head>
@@ -218,7 +218,9 @@
                 }
             }
             else {
-                alert("BUG!!!");
+                alert("BUG");
+                console.log("BUG");
+                console.log(node);
             }
 
             var child_node_id;
@@ -394,7 +396,7 @@
             console.log("Submit child");
             var name = prompt("Please enter your child's name", "Gigi");
             if (name != null) {
-                addChild(clicked_node, name, gender);
+                console.log(addChild(clicked_node, name, gender));
             }
         };
 
@@ -444,7 +446,7 @@
                 for (var i = 0; i < children.boys.length; i++) {
                     if (!checkEmpty(children.boys[i]) && !isInGraf(children.boys[i].id)) {
                         console.log(i);
-                        addNodeToTree(addChild(node, children.boys[i].name, children.boys[i].gender, children.boys[i].id));
+                        addNodeToTree(addChild(node, children.boys[i].name, "male", children.boys[i].id));
                         //addNodeToTree(children.boys[i]);
                     }
                 }
@@ -455,7 +457,7 @@
                 for (var i = 0; i < children.girls.length; i++) {
                     if (!checkEmpty(children.girls[i]) && !isInGraf(children.girls[i].id)) {
                         console.log(i);
-                        addNodeToTree(addChild(node, children.girls[i].name, children.girls[i].gender, children.girls[i].id));
+                        addNodeToTree(addChild(node, children.girls[i].name, "female", children.girls[i].id));
                         //addNodeToTree(children.girls[i]);
                     }
                 }
