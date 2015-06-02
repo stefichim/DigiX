@@ -365,10 +365,8 @@ module.exports = function (app, passport) {
         var myID = req.query.myID;
         var children = {
             boys: [],
-            girl: []
+            girls: []
         };
-        children.boys.length=0;
-        children.girls.length=0;
         console.log(children);
         for (i = 0; i < tree.length; i++) {
             if (tree[i].mother == myID || tree[i].father == myID) {
