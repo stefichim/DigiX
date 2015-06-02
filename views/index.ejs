@@ -44,11 +44,11 @@
                         <% } %>
                         <form class="form" method="post" action="/login">
                             <div class="form-group">
-                                <input type="text" id="username-input" class="form-control input-md"
+                                <input type="text" id="username-input-login" class="form-control input-md"
                                        placeholder="username" name="username">
                             </div>
                             <div class="form-group">
-                                <input type="password" id="password-input" class="form-control input-md"
+                                <input type="password" id="password-input-login" class="form-control input-md"
                                        placeholder="password" name="password">
                             </div>
                             <div class="text-right">
@@ -66,24 +66,24 @@
 
                         <form class="form" action="/signup" method="post">
                             <div class="form-group">
-                                <input type="text" id="username-input" class="form-control input-md" placeholder="username" name="username">
+                                <input type="text" id="username-input-singup" class="form-control input-md" placeholder="username" name="username">
                             </div>
                             <div class="form-group">
-                                <input type="password" id="password-input" class="form-control input-md" placeholder="password" name="password">
+                                <input type="password" id="password-input-signup" class="form-control input-md" placeholder="password" name="password">
                             </div>
                             <div class="form-group">
                                 <input type="text" id="email-input" class="form-control input-md" placeholder="email" name="email">
                             </div>
                             <div class="form-group">
-                                <input type=text" id="first-name-input" class="form-control input-md" placeholder="first_name" name="first name">
+                                <input type="text" id="first-name-input" class="form-control input-md" placeholder="first_name" name="first name">
                             </div>
                             <div class="form-group">
                                 <input type="text" id="last-name-input" class="form-control input-md" placeholder="last_name" name="last name">
                             </div>
                             <div class="form-group">
                                 <select class="form-control" id="sel1" name="gender" >
-                                    <option value="male" name="male">Male</option>
-                                    <option value="female" name="female">Female</option>
+                                    <option id="male" value="male">Male</option>
+                                    <option id="female" value="female">Female</option>
                                 </select>
                             </div>
                             <br>
@@ -98,22 +98,5 @@
         </div>
     </div>
 </div>
-
-<!--<footer>-->
-    <!--<div class="footer navbar-fixed-bottom">-->
-        <!--<div class="container">-->
-            <!--<div class="navbar-header">-->
-                <!--<div class="text-right">-->
-                    <!--<a href="#" class="btn btn-sm" style="color:white">About</a>-->
-                    <!--<a href="#" class="btn btn-sm" style="color:white">Contact</a>-->
-                    <!--<a href="#" class="btn btn-sm" style="color:white">Help</a>-->
-
-                    <!--<div>-->
-                    <!--</div>-->
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
-    <!--</div>-->
-<!--</footer>-->
 </body>
 </html>
