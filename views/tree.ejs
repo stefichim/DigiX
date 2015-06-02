@@ -85,13 +85,13 @@
         var x_constant = 10;
 
         /* Add to graph */
-        function sendNode(url, myID, fromID, name, type) {
+        function sendNode(url, id, fromID, name, type) {
             $.ajax({
                 url: url,
                 type: 'post',
                 data: {
                     node: {
-                        myID: myID,
+                        id: id,
                         fromID: fromID,
                         name: name,
                         type: type
@@ -103,12 +103,12 @@
             });
         };
 
-        function sendDeletedNode(url, myID) {
+        function sendDeletedNode(url, id) {
             $.ajax({
                 url: url,
                 type: 'post',
                 data: {
-                    myID: myID
+                    id: id
                 },
                 dataType: 'json',
                 success: function (data) {
@@ -116,9 +116,15 @@
             });
         };
 
-        function addMother(node, name){
-            var mother_node_id = current_node_id.toString();
-            current_node_id++;
+        function addMother(node, name, id){
+            var mother_node_id;
+            if (id == undefined) {
+                mother_node_id = current_node_id.toString();
+                current_node_id++;
+            }
+            else{
+                mother_node_id = id;
+            }
 
             x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
 
@@ -130,9 +136,15 @@
             sendNode("/ajax", mother_node_id, node.id, name, "mother");
         };
 
-        function addFather(node, name){
-            var father_node_id = current_node_id.toString();
-            current_node_id++;
+        function addFather(node, name, id){
+            var father_node_id;
+            if (id == undefined) {
+                father_node_id = current_node_id.toString();
+                current_node_id++;
+            }
+            else {
+                father_node_id = id;
+            }
 
             x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
 
@@ -145,7 +157,7 @@
             sendNode("/ajax", father_node_id, node.id, name, "father");
         };
 
-        function addChild(node, name, gender) {
+        function addChild(node, name, gender, id) {
             var nodeX, nodeY;
             if (node.gender == "male") {
                 var leftestNode = getLeftestChildX(node);
@@ -178,8 +190,14 @@
                 alert("BUG!!!");
             }
 
-            var child_node_id = current_node_id.toString();
-            current_node_id++;
+            var child_node_id;
+            if (id == undefined) {
+                child_node_id = current_node_id.toString();
+                current_node_id++;
+            } else {
+                child_node_id = id;
+            }
+
 
             //var husbandOfWife = getHusbandOrWife(node);
 
@@ -345,8 +363,67 @@
             }
         };
 
-        s.graph.addNode({id: '0', label: '<%= user.username %>', x: x_start, y: y_start, size: 3, color: '#333', gender: 'male'});
-        sendNode("/ajax", "0", "", "<%= user.username %>", "root");
+        function getInfo(url, requestID) {
+            var info;
+            $.ajax({
+                url: url,
+                type: 'get',
+                data: {
+                    id: requestID
+                },
+                dataType: 'json',
+                success: function (data) {
+                    info = data;
+                }
+            });
+            console.log(info);
+            return info;
+        };
+
+        function isInGraf(node) {
+            if (s.graph.nodes(node.id) == undefined) {
+                return false;
+            }
+            return true;
+        };
+
+        function addNodeToTree(node) {
+            var parents = getInfo("/get/parents", node.id);
+            if (parents.father != undefined && isInGraf(parents.father)) {
+                addFather(node, parents.father.name);
+                addNodeToTree(parents.father);
+            }
+
+            if (parents.mother != undefined && isInGraf(parents.mother)) {
+                addMother(node, parents.mother.name);
+                addNodeToTree(parents.mother);
+            }
+
+            var children = getInfo("/get/children", node.id);
+
+            if (children.boys != undefined) {
+                for (i = 0; i < children.boys.length; i++) {
+                    addChild(node, children.boys[i].name, children.boys[i].gender);
+                    addNodeToTree(children.boys[i]);
+                }
+            }
+
+            if (children.girls != undefined) {
+                for (i = 0; i < children.girls.length; i++) {
+                    addChild(node, children.girls[i].name, children.girls[i].gender);
+                    addNodeToTree(children.girls[i]);
+                }
+            }
+        };
+
+        function createFamilityTree() {
+            var node = getInfo("/get/root");
+            s.graph.addNode({id: node.id, label: node.name, x: x_start, y: y_start, size: 3, color: '#333', gender: node.gender });
+            addNodeToTree(node);
+        };
+
+        <!--s.graph.addNode({id: '0', label: '<%= user.username %>', x: x_start, y: y_start, size: 3, color: '#333', gender: 'male'});-->
+        <!--sendNode("/ajax", "0", "", "<%= user.username %>", "root");-->
 
         s.bind('clickNode', function(e) {
             clicked_node = e.data.node;
@@ -406,6 +483,7 @@
             labelHoverShadow: "node"
         });
 
+        createFamilityTree();
         s.refresh();
     });
 </script>
