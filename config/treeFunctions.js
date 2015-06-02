@@ -122,7 +122,7 @@ function getTreeTags(user, name){
 
 function deleteNode(user, nodeID, callback){
     var tree=user.tree;
-
+    console.log(nodeID);
     for (i = user.tree.length - 1; i >= 0; i--) {
         if(tree[i].myID==nodeID){
             user.tree.splice(i, 1);
@@ -134,8 +134,9 @@ function deleteNode(user, nodeID, callback){
     }
     user.save(function(err){
         if(err) console.dir(err);
-        callback;
-    })
+
+        callback();
+    });
 }
 
 

@@ -90,6 +90,7 @@
 <script>
     $(document).ready(function(){
         var s = new sigma('container');
+
         var clicked_node = undefined;
         var current_node_id = 1;
         var current_edge_id = 0;
@@ -152,6 +153,8 @@
                 mother_node_id = id;
             }
 
+            console.log("M" + mother_node_id.toString());
+
             x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
 
             s.graph.addNode({id: mother_node_id, label: name, x: node.x - x_space, y: node.y - y_space, size: 3, color: '#333', gender:'female'});
@@ -159,7 +162,11 @@
             current_edge_id++;
 
             s.refresh();
-            sendNode("/ajax", mother_node_id, node.id, name, "mother");
+
+            if (id == undefined) {
+                sendNode("/ajax", mother_node_id, node.id, name, "mother");
+            }
+            return s.graph.nodes(mother_node_id);
         };
 
         function addFather(node, name, id){
@@ -173,6 +180,8 @@
             }
 
             x_space = Math.abs(x_start - x_constant * ((y_start - node.y) / y_space));
+            console.log("f-x_space" + x_space.toString());
+            console.log("f-node.y-" + node.y.toString());
 
             s.graph.addNode({id: father_node_id, label: name, x: node.x + x_space, y: node.y - y_space, size: 3, color: '#333', gender:'male'});
 
@@ -180,7 +189,10 @@
             current_edge_id++;
 
             s.refresh();
-            sendNode("/ajax", father_node_id, node.id, name, "father");
+            if (id == undefined) {
+                sendNode("/ajax", father_node_id, node.id, name, "father");
+            }
+            return s.graph.nodes(father_node_id);
         };
 
         function addChild(node, name, gender, id) {
@@ -240,12 +252,17 @@
             s.refresh();
             var type;
             if (node.gender == "male") {
-                type = "father";
+                type = "boy";
             }
             else {
-                type = "mother";
+                type = "girl";
             }
-            sendNode("/ajax", child_node_id, node.id, name, type);
+
+            if (id == undefined) {
+                sendNode("/ajax", child_node_id, node.id, name, type);
+            }
+
+            return s.graph.nodes(child_node_id);
         };
 
         /* Get from graph */
@@ -404,8 +421,8 @@
             return JSON.parse(responseString);
         };
 
-        function isInGraf(node) {
-            if (s.graph.nodes(node.id) == undefined) {
+        function isInGraf(id) {
+            if (s.graph.nodes(id) == undefined) {
                 return false;
             }
             return true;
@@ -420,45 +437,47 @@
         function addNodeToTree(node) {
             var parents = getInfo("/get/parents", node.id);
             console.log("SUS");
-            if (!checkEmpty(parents.father) && !isInGraf(parents.father)) {
-                addFather(node, parents.father.name);
-                addNodeToTree(parents.father);
+            if (!checkEmpty(parents.father) && !isInGraf(parents.father.id)) {
+                addNodeToTree(addFather(node, parents.father.name, parents.father.id));
             }
 
-            if (!checkEmpty(parents.mother) && !isInGraf(parents.mother)) {
-                addMother(node, parents.mother.name);
-                addNodeToTree(parents.mother);
+            if (!checkEmpty(parents.mother) && !isInGraf(parents.mother.id)) {
+                addNodeToTree(addMother(node, parents.mother.name, parents.mother.id));
             }
 
             var children = getInfo("/get/children", node.id);
 
             if (!checkEmpty(children.boys)) {
                 console.log("BOYS");
-                for (i = 0; i < children.boys.length; i++) {
-                    console.log(i);
+                for (var i = 0; i < children.boys.length; i++) {
                     if (!checkEmpty(children.boys[i]) && !isInGraf(children.boys[i].id)) {
-                        addChild(node, children.boys[i].name, children.boys[i].gender);
-                        addNodeToTree(children.boys[i]);
+                        console.log(i);
+                        addNodeToTree(addChild(node, children.boys[i].name, children.boys[i].gender, children.boys[i].id));
+                        //addNodeToTree(children.boys[i]);
                     }
                 }
             }
 
-            if (!checkEmpty(children.girl)) {
+            if (!checkEmpty(children.girls)) {
                 console.log("GIRLS");
-                for (i = 0; i < children.girl.length; i++) {
-                    console.log(i);
-                    if (!checkEmpty(children.girl[i]) && !isInGraf(children.girl[i].id)) {
-                        addChild(node, children.girl[i].name, children.girl[i].gender);
-                        addNodeToTree(children.girl[i]);
+                for (var i = 0; i < children.girls.length; i++) {
+                    if (!checkEmpty(children.girls[i]) && !isInGraf(children.girls[i].id)) {
+                        console.log(i);
+                        addNodeToTree(addChild(node, children.girls[i].name, children.girls[i].gender, children.girls[i].id));
+                        //addNodeToTree(children.girls[i]);
                     }
                 }
             }
+            current_node_id++;
         };
 
         function createFamilityTree() {
             var node = getInfo("/get/root");
+            node.x = x_start;
+            node.y = y_start;
             s.graph.addNode({id: node.id, label: node.name, x: x_start, y: y_start, size: 3, color: '#333', gender: node.gender });
             addNodeToTree(node);
+            current_node_id--;
         };
 
         <!--s.graph.addNode({id: '0', label: '<%= user.username %>', x: x_start, y: y_start, size: 3, color: '#333', gender: 'male'});-->
@@ -506,10 +525,11 @@
         });
 
         s.bind('clickStage', function(e) {
-            clicked_node.color = "#333";
-            s.refresh();
-            //movePanel("-350");
-            clicked_node = undefined;
+            if (clicked_node != undefined) {
+                clicked_node.color = "#333";
+                s.refresh();
+                clicked_node = undefined;
+            }
             document.getElementById("control").style.visibility = "hidden";
         });
 
@@ -525,6 +545,13 @@
         });
 
         createFamilityTree();
+        console.log("FINAL" + s.graph.nodes().length.toString());
+
+//        for (var i = 0; i < s.graph.nodes().length; i++) {
+//            var node = s.graph.nodes(i.toString());
+//            console.log(node.x.toString() + " - " + node.y.toString());
+//        }
+
         s.refresh();
     });
 </script>

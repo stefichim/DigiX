@@ -376,7 +376,7 @@ module.exports = function (app, passport) {
                     'id': tree[i].myID,
                     'name': tree[i].name
                 });
-                else children.girl.push({
+                else children.girls.push({
                     'id': tree[i].myID,
                     'name': tree[i].name
                 });
@@ -386,9 +386,11 @@ module.exports = function (app, passport) {
     });
 
     app.post('/post/delete/node', isLoggedIn, function (req, res) {
-        var nodeID = req.body.myID;
+        var nodeID = req.body.id;
+        console.log("------");
+        console.log(req);
         User.findOne({'username': req.user.username}, function (err, user) {
-            treeF.deleteNode(user, nodeID, function () {
+            treeFunctions.deleteNode(user, nodeID, function () {
                 res.end();
             });
         });
