@@ -67,7 +67,7 @@ module.exports = function (passport) {
                             'myID': '0',
                             'mother': "",
                             'father': "",
-                            'name': req.body.first_name,
+                            'name': username,
                             'genre': req.body.gender
                         });
                         newUser.save(function (err) {

@@ -319,7 +319,7 @@ module.exports = function (app, passport) {
             gender: String
         };
         for (i = 0; i < tree.length; i++) {
-            if (tree[i].myID == "0") root = {'id': tree[i].myID, 'name': tree[i].name, 'gender': tree[i].gender};
+            if (tree[i].myID == "0") root = {'id': tree[i].myID, 'name': tree[i].name, 'gender': tree[i].genre};
         }
         console.log(root);
         res.send(root);

@@ -52,7 +52,7 @@ var userSchema = mongoose.Schema({
         name: String,
         mother: String,
         father: String,
-        genre: String
+        genre: String,
     }]
 
 });
