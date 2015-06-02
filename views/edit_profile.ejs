@@ -50,52 +50,52 @@
 
 		<!-- PROFILE PICTURE -->
 		<div class="col-lg-3">
-			<div class="text-center">
-				<img src="images/profile-picture-standard.gif" class="avatar img-circle" alt="avatar">
-				<h6>Upload a different photo...</h6>
-				<span class="btn btn-default btn-file"><input type="file"></span>
-			</div>
+			<!--<div class="text-center">-->
+				<!--<img src="images/profile-picture-standard.gif" class="avatar img-circle" alt="avatar">-->
+				<!--<h6>Upload a different photo...</h6>-->
+				<!--<span class="btn btn-default btn-file"><input type="file"></span>-->
+			<!--</div>-->
 		</div>
 
 		<!-- PROFILE FORM -->
 		<div class="col-lg-9 personal-info">
-			<div class="alert alert-info alert-dismissable">
+			<div class="alert alert-info alert-dismissable <%- alert.visibility %>">
 				<a class="panel-close close" data-dismiss="alert">×</a>
 				<i class="fa fa-coffee"></i>
-				<strong>Don't make</strong> the content of this form <strong>public</strong>. Press <strong>Save changes</strong> to finish.
+                <%- alert.message %>
 			</div>
 			<h3>Personal info</h3>
         
-        <form class="form-horizontal" role="form" action="/profile" method="get">
+        <form class="form-horizontal" role="form" action="/edit_profile_button" method="post">
             <div class="form-group">
                 <label class="col-md-3 control-label">Username:</label>
                 <div class="col-md-8">
-                    <input class="form-control" type="text" value=<%= user.username %>>
+                    <input class="form-control" type="text" name="newusername" value=<%= user.username %>>
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-md-3 control-label">Password:</label>
                 <div class="col-md-8">
-                    <input class="form-control" type="password" value="password">
+                    <input class="form-control" type="password" name="newpassword" value="password">
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="col-lg-3 control-label">Email:</label>
                 <div class="col-lg-8">
-                    <input class="form-control" type="text" value=<%= user.email %>>
+                    <input class="form-control" type="text" name="newemail" value=<%= user.email %>>
                 </div>
             </div>
             <div class="form-group">
             <label class="col-lg-3 control-label">First name:</label>
             <div class="col-lg-8">
-              <input class="form-control" type="text" value=<%= user.first_name %>>
+              <input class="form-control" type="text" name="newfirstname" value=<%= user.first_name %>>
             </div>
           </div>
           <div class="form-group">
             <label class="col-lg-3 control-label">Last name:</label>
             <div class="col-lg-8">
-              <input class="form-control" type="text" value=<%= user.last_name %>>
+              <input class="form-control" type="text" name="newlastname" value=<%= user.last_name %>>
             </div>
           </div>
             <!--
