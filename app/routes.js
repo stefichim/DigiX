@@ -163,7 +163,10 @@ module.exports = function (app, passport) {
                 //var words = queryString.toLowerCase().split(" ");
                 var words = api.splitTextInTags(queryString);
 
-                var i;
+                console.log(words);
+                words = getTreeNames(user, words);
+                console.log(words);
+
                 for (i = 0; i < user.photos.length; i++) {
 
                     var photoTags = [];
@@ -212,11 +215,14 @@ module.exports = function (app, passport) {
                 if (user.searched_photos.length) {
                     maxScore = user.searched_photos[0].score;
                 }
-
-                for (var i = 0; i < user.searched_photos.length; i++) {
-                    if (user.searched_photos[i].score < maxScore / 2) {
-                        user.searched_photos.splice(i, 1);
-                        i--;
+                if (maxScore == 0){
+                    user.searched_photos.length = 0;
+                } else{
+                    for (var i = 0; i < user.searched_photos.length; i++) {
+                        if (user.searched_photos[i].score < maxScore / 2) {
+                            user.searched_photos.splice(i, 1);
+                            i--;
+                        }
                     }
                 }
 
@@ -348,10 +354,10 @@ module.exports = function (app, passport) {
         res.send(children);
     });
 
-    app.post('/post/delete/node', isLoggedIn, function(req,res){
-        var nodeID=req.body.myID;
-        User.findOne({'username': req.user.username}, function(err,user){
-            treeF.deleteNode(user, nodeID, function(){
+    app.post('/post/delete/node', isLoggedIn, function (req, res) {
+        var nodeID = req.body.myID;
+        User.findOne({'username': req.user.username}, function (err, user) {
+            treeF.deleteNode(user, nodeID, function () {
                 res.end();
             });
         });
@@ -435,7 +441,6 @@ module.exports = function (app, passport) {
         successRedirect: '/flickr',
         failureRedirect: '/logout'
     }));
-
 
 
     //----------------------------------------------------------
@@ -992,7 +997,8 @@ module.exports = function (app, passport) {
 };
 
 function getTreeNames(user, array) {
-    for (var i = 0; i < array.length; i++) {
+    var l = array.length;
+    for (var i = 0; i < l; i++) {
         array.push.apply(array, treeFunctions.getTreeTags(user, array[i]));
     }
 

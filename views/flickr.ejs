@@ -17,7 +17,19 @@
 		<link rel="stylesheet" type="text/css" href="stylesheets/flickr/default.css" />
 		<link rel="stylesheet" type="text/css" href="stylesheets/flickr/component.css" />
 
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			$(window).load(function () {
+				$(".loader").fadeOut("slow");
+				console.log("alohaaa");
+			});
+			function showLoader() {
+				$(".loader").fadeIn("slow");
+			};
+		</script>
+
 	</head>
+	<div class="loader"></div>
 	<header>
 		<div class="navbar navbar-default navbar-inverse">
 			<div class="container">
@@ -54,7 +66,7 @@
 					<p>Are you the pround owner of a Flicr account? How about showcasing all your work from here. Just login and review your proudest photos.</p>
 				</div>
 				<div class="column">
-					<a href=<%=link%>><button><%=msg%></button></a>
+					<a href=<%=link%> onclick="showLoader();"><button><%=msg%></button></a>
 				</div>
 			</div>
 		</div><!-- /container -->

@@ -16,8 +16,20 @@
 		<link rel="stylesheet" type="text/css" href="stylesheets/facebook/default.css" />
 		<link rel="stylesheet" type="text/css" href="stylesheets/facebook/component.css" />
 
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			$(window).load(function () {
+				$(".loader").fadeOut("slow");
+				console.log("alohaaa");
+			});
+			function showLoader() {
+				$(".loader").fadeIn("slow");
+			};
+		</script>
+
 		<!--<script src="js/modernizr.custom.js"></script>-->
 	</head>
+	<div class="loader"></div>
 	<header>
 		<div class="navbar navbar-default navbar-inverse">
 			<div class="container">
@@ -82,7 +94,7 @@
 					<p>You probably have a Facebook account. And probably you have a lot of photos on it. How about load them automatically  instead of doing it the slow way?</p>
 				</div>
 				<div class="column">
-					<a href=<%= route %>><button><%= message %></button></a>
+					<a href=<%= route %> onclick="showLoader();"><button><%= message %></button></a>
 				</div>
 			</div>
 		</div><!-- /container -->

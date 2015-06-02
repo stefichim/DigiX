@@ -15,7 +15,18 @@
 		<script src="include/bootstrap/js/bootstrap.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="stylesheets/instagram/default.css" />
 		<link rel="stylesheet" type="text/css" href="stylesheets/instagram/component.css" />
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			$(window).load(function () {
+				$(".loader").fadeOut("slow");
+			});
+			function showLoader() {
+				$(".loader").fadeIn("slow");
+			};
+		</script>
 	</head>
+	<div class="loader"></div>
 	<header>
 		<div class="navbar navbar-default navbar-inverse">
 			<div class="container">
@@ -81,7 +92,7 @@
 						</p>
 				</div>
 				<div class="column">
-					<a href="<%=route%>"><button href="<%=route%>"><%=msg%></button></a>
+					<a href="<%=route%>"><button href="<%=route%>" onclick="showLoader();"><%=msg%></button></a>
 					<!--<a href="https://instagram.com/oauth/authorize/?client_id=094ce9a906634c468f99aaa7da117b65&redirect_uri=http://localhost:2080/instagram/code&response_type=code" class="btn btn-primary" >Sync Instagram</a>-->
 				</div>
 			</div>
