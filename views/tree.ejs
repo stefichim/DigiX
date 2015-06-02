@@ -6,7 +6,6 @@
     <script src="include/jquery/jquery-1.11.2.min.js"></script>
     <script src="include/bootstrap/js/bootstrap.min.js"></script>
 
-    <script src="javascripts/tree.js"></script>
     <link href="stylesheets/tree.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -63,25 +62,16 @@
     </div>
 </header>
 <br>
-<div id="control" style="visibility:hidden; width: 500px;">
+<!--<div id="control" style="visibility:hidden; width: 500px;">-->
 </div>
 
 
-<div class="left-panel" id="panel">
-    <br>
-    <input type="text" class="form-control" placeholder="Father">
-    <button type="button" class="btn btn-primary" id="fatherSubmit">Add Father</button>
-    <hr>
-    <input type="text" class="form-control" placeholder="Mother" id="motherInput">
-    <button type="button" class="btn btn-danger" id="motherSubmit">Add Mother</button>
-    <hr>
-    <input type="text" class="form-control" placeholder="Son">
-    <button type="button" class="btn btn-success" id="boySubmit">Add Son</button>
-    <hr>
-    <input type="text" class="form-control" placeholder="Daughter">
-    <button type="button" class="btn btn-warning" id="girlSubmit">Add Daughter</button>
+
+
+<div class="left-panel" id="control">
+
 </div>
-<button type="button" id="toggle"> Click</button>
+
 
 <div id="container">
 
@@ -97,20 +87,21 @@
         var x_space = 100;
         var y_space = 100;
 
+
+        function movePanel(offset) {
+            //alert("moveP");
+            $(".left-panel").animate({
+                left: offset
+            }, 450, function () {
+
+            });
+        }
+
         var x_start = 100;
         var y_start = 100;
 
-
         var x_constant = 10;
 
-            function movePanel(offset){
-            console.log("moveP");
-                $("#panel").animate({
-                    left: offset
-                }, 450, function () {
-
-                });
-        }
         /* Add to graph */
         function sendNode(url, id, fromID, name, type) {
             $.ajax({
@@ -237,7 +228,6 @@
             } else {
                 child_node_id = id;
             }
-
 
             //var husbandOfWife = getHusbandOrWife(node);
 
@@ -375,12 +365,14 @@
             console.log("Submit mother");
 
 
-            var name = $("#motherInput").value;
+            var name = $("#inputMother").val();
             if (name != null) {
                 addMother(clicked_node, name);
 
                 child = document.getElementById("motherSubmit");
+                input=document.getElementById("inputMother");
                 child.parentNode.removeChild(child);
+                input.parentNode.removeChild(input);
             }
         };
 
@@ -389,12 +381,14 @@
 
             console.log("Submit father");
 
-            var name = prompt("Please enter your father's name", "Gigel");
+            var name = $("#inputFather").val();
             if (name != null) {
                 addFather(clicked_node, name);
 
                 child = document.getElementById("fatherSubmit");
+                input=document.getElementById("inputFather");
                 child.parentNode.removeChild(child);
+                input.parentNode.removeChild(input);
             }
         };
 
@@ -402,7 +396,10 @@
             if (clicked_node == undefined) return;
 
             console.log("Submit child");
-            var name = prompt("Please enter your child's name", "Gigi");
+            var name;
+            if(gender=="male") name=$("#inputBoy").val();
+            else name=$("#inputGirl").val();
+            alert(name);
             if (name != null) {
                 console.log(addChild(clicked_node, name, gender));
             }
@@ -489,8 +486,25 @@
             clicked_node = e.data.node;
             clicked_node.color = 'red';
             s.refresh();
+            document.getElementById("control").innerHTML = '<br>' +
+                    '<p>Selected node:  <span id="selectedNode"></span></p>' +
+                    '<br>'+
+                    '<input type="text" class="form-control" placeholder="Father" id="inputFather">'+
+                    '<button type="button" class="btn btn-primary" id="fatherSubmit">Add Father</button>'+
+            '<hr>'+
+            '<input type="text"  class="form-control" placeholder="Mother" id="inputMother">'+
+                    '<button type="button" class="btn btn-danger" id="motherSubmit">Add Mother</button>'+
+            '<hr>'+
+            '<input type="text" class="form-control" placeholder="Son" id="inputBoy">'+
+                   ' <button type="button" class="btn btn-success" id="boySubmit">Add Son</button>'+
+            '<hr>'+
+            '<input type="text" class="form-control" placeholder="Daughter" id="inputGirl">'+
+                   '<button type="button" class="btn btn-warning" id="girlSubmit">Add Daughter</button>'
+            +'<hr><button type="button" class="btn btn-danger" id="delete">Delete Node</button><br><hr>'
+            ;
+
             movePanel("0");
-            //document.getElementById("control").innerHTML = '<p>Selected node:  <span id="selectedNode"></span></p><button id="motherSubmit">Add Mother</button><button id="fatherSubmit">Add Father</button><button id="girlSubmit">Add Girl</button><button id="boySubmit">Add Boy</button><button id="delete">Delete</button>';
+
 
             $('#motherSubmit').on('click',function(){
                 submitMother();
@@ -512,11 +526,15 @@
 
             if (getMother(clicked_node) != undefined) {
                 child = document.getElementById("motherSubmit");
+                input=document.getElementById("inputMother");
                 child.parentNode.removeChild(child);
+                input.parentNode.removeChild(input);
             }
             if (getFather(clicked_node) != undefined) {
                 child = document.getElementById("fatherSubmit");
+                input=document.getElementById("inputFather");
                 child.parentNode.removeChild(child);
+                input.parentNode.removeChild(input);
             }
             if (!canBeRemoved(clicked_node)) {
                 child = document.getElementById("delete");
@@ -533,7 +551,7 @@
                 clicked_node = undefined;
             }
             movePanel("-350");
-            document.getElementById("control").style.visibility = "hidden";
+            //document.getElementById("control").style.visibility = "hidden";
         });
 
         s.settings({

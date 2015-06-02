@@ -10,13 +10,10 @@
 
 });*/
 
-function movePanel(){
-    $("#toggle").click(function () {
-        $("#panel").animate({
-            left: "+="+String(offset)
-        }, 450, function () {
+function movePanel(offset){
+    $(".left-panel").animate({
+            left: "="+offset
+       }, 450, function () {
             // Animation complete.
-            offset=offset*(-1);
         });
-    });
 }
