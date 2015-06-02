@@ -693,10 +693,63 @@ module.exports = function (app, passport) {
     //----------------------------------------------------------
 
     app.get('/edit_profile', isLoggedIn, function (req, res) {
+        var alert = {};
+        alert.visibility = "hidden";
+        alert.message = "";
+
         res.render('edit_profile', {
-            user: req.user
+            user: req.user,
+            alert: alert
         });
     });
+
+    app.post('/edit_profile_button', isLoggedIn, function (req, res) {
+        User.findOne({'username': req.user.username}, function (err, user) {
+
+            var newUserName = req.body.newusername;
+            var newPassword = req.body.newpassword;
+            var newEmail = req.body.newemail;
+            var newFirstName = req.body.newfirstname;
+            var newLastName = req.body.newlastname;
+
+            api.checkUserName(user, newUserName, function(alert){
+                api.checkNewEmail(user, newEmail, alert, function(alert1){
+                    api.checkNewFirstName(user, newFirstName, alert1, function(alert2){
+                        api.checkNewLastName(user, newLastName, alert2, function(alert3){
+                            api.checkPassword(user, newPassword, alert3, function(alert4){
+                                if (alert4.message.length == 0){
+
+                                    user.username = newUserName;
+                                    user.email = newEmail;
+                                    user.first_name = newFirstName;
+                                    user.last_name = newLastName;
+
+                                    var newUser = new User();
+                                    user.password = newUser.generateHash(newPassword);
+
+                                    user.save(function (err) {
+                                        if (err) {
+                                            console.dir(err);
+                                        }
+                                    });
+
+                                    res.render('edit_profile', {
+                                        user: user,
+                                        alert: alert4
+                                    });
+                                } else {
+                                    res.render('edit_profile', {
+                                        user: req.user,
+                                        alert: alert4
+                                    });
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    })
 
     app.post('/edit_profile', passport.authenticate('edit', {
         successRedirect: '/profile',

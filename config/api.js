@@ -450,6 +450,93 @@ function isCharNotPartOfTag(char) {
     }
 }
 
+function checkUserName(user, newUserName, callback){
+    var alert = {};
+    alert.visibility = "hidden";
+    alert.message = "";
+    if (newUserName.length != 0){
+        if (newUserName != user.username){
+            User.findOne({'username': newUserName}, function (err, user2){
+                if (user2){
+                    alert.visibility = "visible";
+                    alert.message = "Username allready taken!";
+                    callback(alert);
+                } else {
+                    callback(alert);
+                }
+            });
+        } else {
+            callback(alert);
+        }
+    } else {
+        alert.visibility = "visible";
+        alert.message = "Username is required!";
+        callback(alert);
+    }
+}
+
+function checkNewEmail(user, newEmail, alert, callback){
+    if (alert.message.length != 0){
+        callback(alert);
+    } else {
+        if (newEmail.length == 0){
+            alert.visibility = "visible";
+            alert.message = "Email adress is required!";
+            callback(alert);
+        } else {
+            callback(alert);
+        }
+    }
+}
+
+function checkNewFirstName(user, newFirstName, alert, callback){
+    if (alert.message.length != 0){
+        callback(alert);
+    } else {
+        if (newFirstName.length == 0){
+            alert.visibility = "visible";
+            alert.message = "First name is required!";
+            callback(alert);
+        } else {
+            callback(alert);
+        }
+    }
+}
+
+function checkNewLastName(user, newLastName, alert, callback){
+    if (alert.message.length != 0){
+        callback(alert);
+    } else {
+        if (newLastName.length == 0){
+            alert.visibility = "visible";
+            alert.message = "Last name is required!";
+            callback(alert);
+        } else {
+            callback(alert);
+        }
+    }
+}
+
+function checkPassword(user, newPassword, alert, callback){
+    if (alert.message.length != 0){
+        callback(alert);
+    } else {
+        if (newPassword == "password"){
+            alert.visibility = "visible";
+            alert.message = "Password is set to default value. Retry!";
+            callback(alert);
+        } else {
+            if (newPassword.length == 0){
+                alert.visibility = "visible";
+                alert.message = "Password is required!";
+                callback(alert);
+            } else {
+                callback(alert);
+            }
+        }
+    }
+}
+
 module.exports = {
     getFacebookPhoto: getFacebookPhoto,
     getFacebookAlbum: getFacebookAlbum,
@@ -460,5 +547,11 @@ module.exports = {
     syncFacebookPhotos: syncFacebookPhotos,
 
     getPicasaAlbums: getPicasaAlbums,
-    splitTextInTags: splitTextInTags
+    splitTextInTags: splitTextInTags,
+
+    checkUserName: checkUserName,
+    checkNewEmail: checkNewEmail,
+    checkNewFirstName: checkNewFirstName,
+    checkNewLastName: checkNewLastName,
+    checkPassword: checkPassword
 };
