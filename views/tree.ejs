@@ -66,21 +66,20 @@
 <div id="control" style="visibility:hidden; width: 500px;">
 </div>
 
-<!--
+
 <div class="left-panel" id="panel">
     <br>
     <input type="text" class="form-control" placeholder="Father">
-    <button type="button" class="btn btn-primary">Add Father</button>
+    <button type="button" class="btn btn-primary" id="fatherSubmit">Add Father</button>
     <hr>
     <input type="text" class="form-control" placeholder="Mother">
-    <button type="button" class="btn btn-danger">Add Mother</button>
+    <button type="button" class="btn btn-danger" id="motherSubmit">Add Mother</button>
     <hr>
     <input type="text" class="form-control" placeholder="Son">
-    <button type="button" class="btn btn-success">Add Son</button>
+    <button type="button" class="btn btn-success" id="boySubmit">Add Son</button>
     <hr>
     <input type="text" class="form-control" placeholder="Daughter">
-    <button type="button" class="btn btn-warning">Add Daughter</button>
--->
+    <button type="button" class="btn btn-warning" id="girlSubmit">Add Daughter</button>
 </div>
 <button type="button" id="toggle"> Click</button>
 
@@ -91,7 +90,6 @@
 <script>
     $(document).ready(function(){
         var s = new sigma('container');
-
         var clicked_node = undefined;
         var current_node_id = 1;
         var current_edge_id = 0;
@@ -101,8 +99,17 @@
         var x_start = 100;
         var y_start = 100;
 
+
         var x_constant = 10;
 
+            function movePanel(offset){
+            console.log("moveP");
+                $("#panel").animate({
+                    left: offset
+                }, 450, function () {
+
+                });
+        }
         /* Add to graph */
         function sendNode(url, id, fromID, name, type) {
             $.ajax({
@@ -461,7 +468,8 @@
             clicked_node = e.data.node;
             clicked_node.color = 'red';
             s.refresh();
-            document.getElementById("control").innerHTML = '<p>Selected node:  <span id="selectedNode"></span></p><button id="motherSubmit">Add Mother</button><button id="fatherSubmit">Add Father</button><button id="girlSubmit">Add Girl</button><button id="boySubmit">Add Boy</button><button id="delete">Delete</button>';
+            movePanel("0");
+            //document.getElementById("control").innerHTML = '<p>Selected node:  <span id="selectedNode"></span></p><button id="motherSubmit">Add Mother</button><button id="fatherSubmit">Add Father</button><button id="girlSubmit">Add Girl</button><button id="boySubmit">Add Boy</button><button id="delete">Delete</button>';
 
             $('#motherSubmit').on('click',function(){
                 submitMother();
@@ -500,6 +508,7 @@
         s.bind('clickStage', function(e) {
             clicked_node.color = "#333";
             s.refresh();
+            //movePanel("-350");
             clicked_node = undefined;
             document.getElementById("control").style.visibility = "hidden";
         });

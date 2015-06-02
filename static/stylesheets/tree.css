@@ -1,10 +1,11 @@
-/*.left-panel{
+.left-panel{
     background-color: #333;
     width:350px;
     height: 310px;
     top: 33%;
     left:-350px;
     position: fixed;
+    z-index: 1000;
 }
 .left-panel input{
     width: 200px;
@@ -15,7 +16,7 @@ label {
 }
 .left-panel button {
     width: 100px;
-}*/
+}
 
 #container {
     position: absolute;
