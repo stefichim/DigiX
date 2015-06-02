@@ -2,7 +2,7 @@
  * Created by Pava on 5/31/2015.
  */
 
-
+var api = require('../config/api');
 
 function nephew(user){
     var result=[];
@@ -98,7 +98,7 @@ function grandpa(user){
 function convert(result,user){
     var convertedResult=[];
     for(i=0;i<result.length;i++) {
-        for(j=0;j<user.tree.length;j++) if(user.tree[j].myID==result[i]) convertedResult.push(user.tree[j].name);
+        for(j=0;j<user.tree.length;j++) if(user.tree[j].myID==result[i]) convertedResult.push.apply(convertedResult,api.splitTextInTags(user.tree[j].name));
     }
     return convertedResult;
 }
@@ -137,8 +137,6 @@ function deleteNode(user, nodeID, callback){
         callback;
     })
 }
-
-
 
 
 module.exports = {
