@@ -1,0 +1,18 @@
+.left-panel{
+    background-color: #333;
+    width:350px;
+    height: 310px;
+    top: 33%;
+    left:-350px;
+    position: fixed;
+}
+.left-panel input{
+    width: 200px;
+    display: inline;
+}
+label {
+    color: white;
+}
+.left-panel button {
+    width: 100px;
+}
