@@ -37,8 +37,6 @@ module.exports = function (passport) {
         },
         function (req, username, password, done) {
 
-            // asynchronous
-            // User.findOne wont fire unless data is sent back
             process.nextTick(function () {
 
                 // find a user whose email is the same as the forms email
@@ -57,20 +55,21 @@ module.exports = function (passport) {
                         // create the user
                         var newUser = new User();
 
+                        console.log(req.body.gender);
+
                         newUser.username = username;
                         newUser.password = newUser.generateHash(password);
                         newUser.email = req.body.email;
                         newUser.first_name = req.body.first_name;
                         newUser.last_name = req.body.last_name;
                         newUser.current_picture_index = '0';
-                        // set the user's local credentials
-                        /* newUser.local.username   = username;
-                         newUser.local.password   = newUser.generateHash(password);
-                         newUser.local.email      = req.body.email;
-                         newUser.local.first_name = req.body.first_name;
-                         newUser.local.last_name  = req.body.last_name;*/
-
-                        // save the user
+                        newUser.tree.push({
+                            'myID': '0',
+                            'mother': "",
+                            'father': "",
+                            'name': username,
+                            'genre': req.body.gender
+                        });
                         newUser.save(function (err) {
                             if (err)
                                 throw err;

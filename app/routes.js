@@ -294,7 +294,7 @@ module.exports = function (app, passport) {
     //----------------------------------------------------------
     // PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA PAVA
     //----------------------------------------------------------
-    //----------------------------------------------------------
+    //----------------------------------------------------------f
 
 
     app.get('/arbore', isLoggedIn, function (req, res) {
@@ -313,42 +313,71 @@ module.exports = function (app, passport) {
 
     app.get('/get/root', isLoggedIn, function (req, res) {
         var tree = req.user.tree;
-        var root;
+        var root={
+            id: String,
+            name: String,
+            gender: String
+        };
         for (i = 0; i < tree.length; i++) {
-            if (tree[i].myID == "0") root = tree[i];
+            if (tree[i].myID == "0") root = {'id': tree[i].myID, 'name': tree[i].name, 'gender': tree[i].genre};
         }
         console.log(root);
         res.send(root);
     });
 
     app.get('/get/parents', isLoggedIn, function (req, res) {
-        var myID = req.query.myID;
+        var nodeID = req.query.myID;
         var parents = {
-            mother: String,
-            father: String
-        }
+            mother: {
+                id: String,
+                name: String
+            },
+            father: {
+                id: String,
+                name: String
+            }
+        };
         var tree = req.user.tree;
-        for (i = 0; i < tree.length; i++) {
-            if (tree[i].myID == myID) {
-                parents.mother = tree[i].mother;
-                parents.father = tree[i].father;
-                res.send(parents);
+        var motherID, fatherID;
+        for(i=0;i<tree.length;i++){
+            if(tree[i].myID==nodeID) {
+                motherID=tree[i].mother;
+                fatherID=tree[i].father;
             }
         }
+
+        for(i=0;i<tree.length;i++){
+            if(motherID!="" && tree[i].myID==motherID) parents.mother={
+                'id': motherID,
+                'name': tree[i].name
+            }
+            if(fatherID!="" && tree[i].myID==fatherID) parents.father={
+                'id': fatherID,
+                'name': tree[i].name
+            }
+        }
+        console.log(parents);
         res.send(parents);
     });
 
-    app.get('/get/children', isLoggedIn, function (req, res) {
+    app.get('/get/children',isLoggedIn, function (req, res) {
         var tree = req.user.tree;
         var myID = req.query.myID;
         var children = {
-            boys: [String],
-            girl: [String]
-        }
+            boys: [],
+            girls: []
+        };
+        console.log(children);
         for (i = 0; i < tree.length; i++) {
             if (tree[i].mother == myID || tree[i].father == myID) {
-                if (tree[i].genre == "male") children.boys.push(tree[i].myID);
-                else children.girl.push(tree[i].myID);
+                if (tree[i].genre == "male") children.boys.push({
+                    'id': tree[i].myID,
+                    'name': tree[i].name
+                });
+                else children.girl.push({
+                    'id': tree[i].myID,
+                    'name': tree[i].name
+                });
             }
         }
         res.send(children);
