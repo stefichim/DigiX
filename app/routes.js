@@ -345,20 +345,20 @@ module.exports = function (app, passport) {
                 fatherID=tree[i].father;
             }
         }
-        if(motherID=="") parents.mother=undefined;
-        if(fatherID=="") parents.father=undefined;
 
         var tree = req.user.tree;
         for(i=0;i<tree.length;i++){
-            if(tree[i].myID==motherID) parents.mother={
+            if(tree[i].myID==motherID && motherID!="") parents.mother={
                 'id': motherID,
                 'name': tree[i].name
             }
-            if(tree[i].myID==fatherID) parents.father={
+            if(tree[i].myID==fatherID && fatherID!="") parents.father={
                 'id': fatherID,
                 'name': tree[i].name
             }
         }
+        if(motherID=="") parents.mother=undefined;
+        if(fatherID=="") parents.father=undefined;
         res.send(parents);
     });
 
