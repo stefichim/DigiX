@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="stylesheets/arbore.css" rel="stylesheet" type="text/css">
     <link href="stylesheets/jquery.alerts.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="include/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="include/bootstrap/css/bootstrap-theme.min.css">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="javascripts/jquery.alerts.js"></script>
+    <script src="javascripts/tree.js"></script>
+    <link href="stylesheets/tree.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 <header>
@@ -64,6 +65,24 @@
 <br>
 <div id="control" style="visibility:hidden; width: 500px;">
 </div>
+
+
+<div class="left-panel" id="panel">
+    <br>
+    <input type="text" class="form-control" placeholder="Father">
+    <button type="button" class="btn btn-primary">Add Father</button>
+    <hr>
+    <input type="text" class="form-control" placeholder="Mother">
+    <button type="button" class="btn btn-danger">Add Mother</button>
+    <hr>
+    <input type="text" class="form-control" placeholder="Son">
+    <button type="button" class="btn btn-success">Add Son</button>
+    <hr>
+    <input type="text" class="form-control" placeholder="Daughter">
+    <button type="button" class="btn btn-warning">Add Daughter</button>
+
+</div>
+<button type="button" id="toggle"> Click</button>
 
 <div id="container">
 
