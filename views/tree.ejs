@@ -72,7 +72,7 @@
     <input type="text" class="form-control" placeholder="Father">
     <button type="button" class="btn btn-primary" id="fatherSubmit">Add Father</button>
     <hr>
-    <input type="text" class="form-control" placeholder="Mother">
+    <input type="text" class="form-control" placeholder="Mother" id="motherInput">
     <button type="button" class="btn btn-danger" id="motherSubmit">Add Mother</button>
     <hr>
     <input type="text" class="form-control" placeholder="Son">
@@ -373,7 +373,7 @@
             console.log("Submit mother");
 
 
-            var name = prompt("Please enter your mother's name", "Gigela");
+            var name = $("#motherInput").value;
             if (name != null) {
                 addMother(clicked_node, name);
 
@@ -530,6 +530,7 @@
                 s.refresh();
                 clicked_node = undefined;
             }
+            movePanel("-350");
             document.getElementById("control").style.visibility = "hidden";
         });
 
