@@ -14,8 +14,6 @@ function getFacebookPhoto(photos, album_index, albums, token, next, callback) {
             album_url = next;
         }
 
-        //console.dir(album_url);
-
         request(album_url, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var photosJson = JSON.parse(body);
@@ -246,7 +244,6 @@ function nextPictureFlickr(data, next) {
             for (j = 0; j < tags.photo.tags.tag.length; j++) {
                 realTags.push(tags.photo.tags.tag[j].raw);
             }
-            //console.log(rspPhoto);
             var commentsUrl = 'https://api.flickr.com/services/rest' + '?' + 'method=flickr.photos.comments.getList' +
                 '&' + 'photo_id=' + rspPhoto.id + '&format=json&nojsoncallback=1';
 
