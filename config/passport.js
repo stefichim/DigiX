@@ -3,7 +3,7 @@
 // load all the things we need
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
-var FlickrStrategy= require('passport-flickr').Strategy;
+var FlickrStrategy = require('passport-flickr').Strategy;
 var privateInfo = require('../app/models/private');
 
 // load up the user model
@@ -156,28 +156,30 @@ module.exports = function (passport) {
             })
         }));
 
-    passport.use('flickr',new FlickrStrategy({
+    passport.use('flickr', new FlickrStrategy({
             consumerKey: privateInfo.flickr.consumer_key,
             consumerSecret: privateInfo.flickr.consumer_secret,
             callbackURL: 'http://localhost:2080/flickr/code',
             passReqToCallback: true
         },
-        function(req,token, tokenSecret, profile, done) {
-           console.log("passport");console.log(profile);
+        function (req, token, tokenSecret, profile, done) {
+            console.log("passport");
+            console.log(profile);
             process.nextTick(function () {
 
-                console.log("passport");console.log(profile);
+                console.log("passport");
+                console.log(profile);
                 // try to find the user based on their google id
                 User.findOne({'_id': req.user._id}, function (err, user) {
                         if (err)
                             return done(err);
-                        if(user) {
+                        if (user) {
                             user.flickr.nsid = profile.id;
                             user.flickr.token = token;
                             user.flickr.token_secret = tokenSecret;
-                            user.save(function(err){
-                                if(err) throw err;
-                                return api.getFlickrPhotos(user.username, function(){
+                            user.save(function (err) {
+                                if (err) throw err;
+                                return api.getFlickrPhotos(user.username, function () {
                                     return done(null, user);
                                 })
                             })
