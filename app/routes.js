@@ -305,6 +305,7 @@ module.exports = function (app, passport) {
     app.post('/ajax', isLoggedIn, function (req, res) {
         var node = req.body.node;
         console.log(node);
+        console.log("ogar");
         User.findOne({'username': req.user.username}, function (err, user) {
             updateTree(user, node);
         });
@@ -356,6 +357,7 @@ module.exports = function (app, passport) {
                 'name': tree[i].name
             }
         }
+
         console.log(parents);
         res.send(parents);
     });
@@ -394,9 +396,10 @@ module.exports = function (app, passport) {
 
     function updateTree(user, node, res) {
         var found = false;
-
+        console.log("update");
+        console.log(node);
         if (node.type == "root") {
-            user.tree.push({'myID': node.myID, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
+            user.tree.push({'myID': node.id, 'name': node.name, 'mother': "", 'father': "", genre: "male"});
             user.save(function (err) {
                 if (err) console.dir(err);
             })
@@ -405,22 +408,22 @@ module.exports = function (app, passport) {
 
         for (i = 0; i < user.tree.length; i++) {
             if (found == true) return;
-            if (user.tree[i].myID = node.fromID) {
+            if (user.tree[i].myID == node.fromID) {
                 var newNode = {
-                    myID: node.myID,
+                    myID: node.id,
                     name: node.name,
                     mother: "",
                     father: "",
                     genre: ""
                 }
                 if (node.type == "mother") {
-                    user.tree[i].mother = node.myID;
+                    user.tree[i].mother = node.id;
                     newNode.genre = "female";
                     user.tree.push(newNode);
                     found = true;
                 }
                 else if (node.type == "father") {
-                    user.tree[i].father = node.myID;
+                    user.tree[i].father = node.id;
                     newNode.genre = "male";
                     user.tree.push(newNode);
                     found = true;
