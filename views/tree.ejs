@@ -321,7 +321,7 @@
             }
             s.refresh();
 
-            sendNode('/post/delete/node', node.id);
+            sendDeletedNode('/post/delete/node', node.id);
         };
 
         /* Calls from html */
@@ -364,20 +364,18 @@
         };
 
         function getInfo(url, requestID) {
-            var info;
-            $.ajax({
+            var responseString = ($.ajax({
                 url: url,
                 type: 'get',
                 data: {
-                    id: requestID
+                    myID: requestID
                 },
-                dataType: 'json',
-                success: function (data) {
-                    info = data;
-                }
-            });
-            console.log(info);
-            return info;
+                async: false,
+                dataType: 'json'
+            })).responseText;
+            console.log(responseString);
+//            console.dir(JSON.parse(responseString));
+            return JSON.parse(responseString);
         };
 
         function isInGraf(node) {
@@ -387,31 +385,46 @@
             return true;
         };
 
+        function checkEmpty(obj) {
+            if (obj == undefined) return true;
+            //console.log(Object.keys(obj).length === 0);
+            return Object.keys(obj).length === 0;
+        };
+
         function addNodeToTree(node) {
             var parents = getInfo("/get/parents", node.id);
-            if (parents.father != undefined && isInGraf(parents.father)) {
+            console.log("SUS");
+            if (!checkEmpty(parents.father) && !isInGraf(parents.father)) {
                 addFather(node, parents.father.name);
                 addNodeToTree(parents.father);
             }
 
-            if (parents.mother != undefined && isInGraf(parents.mother)) {
+            if (!checkEmpty(parents.mother) && !isInGraf(parents.mother)) {
                 addMother(node, parents.mother.name);
                 addNodeToTree(parents.mother);
             }
 
             var children = getInfo("/get/children", node.id);
 
-            if (children.boys != undefined) {
+            if (!checkEmpty(children.boys)) {
+                console.log("BOYS");
                 for (i = 0; i < children.boys.length; i++) {
-                    addChild(node, children.boys[i].name, children.boys[i].gender);
-                    addNodeToTree(children.boys[i]);
+                    console.log(i);
+                    if (!checkEmpty(children.boys[i]) && !isInGraf(children.boys[i].id)) {
+                        addChild(node, children.boys[i].name, children.boys[i].gender);
+                        addNodeToTree(children.boys[i]);
+                    }
                 }
             }
 
-            if (children.girls != undefined) {
-                for (i = 0; i < children.girls.length; i++) {
-                    addChild(node, children.girls[i].name, children.girls[i].gender);
-                    addNodeToTree(children.girls[i]);
+            if (!checkEmpty(children.girl)) {
+                console.log("GIRLS");
+                for (i = 0; i < children.girl.length; i++) {
+                    console.log(i);
+                    if (!checkEmpty(children.girl[i]) && !isInGraf(children.girl[i].id)) {
+                        addChild(node, children.girl[i].name, children.girl[i].gender);
+                        addNodeToTree(children.girl[i]);
+                    }
                 }
             }
         };
